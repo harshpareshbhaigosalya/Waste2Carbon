@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import { LandingPage } from './components/LandingPage';
 import { AuthScreen } from './components/AuthScreen';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { Navbar } from './components/Navbar';
@@ -13,6 +14,8 @@ import { Sparkles, Mic } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const { currentUser, isLoading } = useApp();
+  const [showLanding, setShowLanding] = useState(true);
+  const [authDefaultRegister, setAuthDefaultRegister] = useState(true);
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
@@ -34,22 +37,58 @@ const MainLayout: React.FC = () => {
     );
   }
 
-  // 1. If not logged in -> Show Clean Auth Screen
+  // 1. If not logged in:
+  // Show high-converting landing page first; user can toggle to auth
   if (!currentUser) {
-    return <AuthScreen />;
+    if (showLanding) {
+      return (
+        <LandingPage
+          onGetStarted={() => {
+            setAuthDefaultRegister(true);
+            setShowLanding(false);
+          }}
+          onSignIn={() => {
+            setAuthDefaultRegister(false);
+            setShowLanding(false);
+          }}
+        />
+      );
+    }
+    return (
+      <AuthScreen
+        onBackToLanding={() => setShowLanding(true)}
+        defaultIsRegister={authDefaultRegister}
+      />
+    );
   }
 
-  // 2. If logged in for the first time without completing onboarding -> Show Onboarding Screen (Admin bypasses onboarding)
+  // 2. If logged in but requested to view landing page
+  if (showLanding && !currentUser.onboarded) {
+    // New unboarded user visiting landing can proceed directly to onboarding
+  }
+
+  // If logged in and explicitly opened landing from Navbar
+  if (showLanding && currentUser) {
+    return (
+      <LandingPage
+        onGetStarted={() => setShowLanding(false)}
+        onSignIn={() => setShowLanding(false)}
+      />
+    );
+  }
+
+  // 3. If logged in for the first time without completing onboarding -> Show Onboarding Screen (Admin bypasses onboarding)
   if (!currentUser.onboarded && currentUser.role !== 'admin') {
     return <OnboardingScreen />;
   }
 
-  // 3. User is logged in -> Show appropriate dashboard
+  // 4. User is logged in -> Show appropriate dashboard
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#1C1E21] flex flex-col selection:bg-[#2D5A43] selection:text-white relative">
       <Navbar
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenVoiceAssistant={() => setIsVoiceOpen(true)}
+        onOpenLanding={() => setShowLanding(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">

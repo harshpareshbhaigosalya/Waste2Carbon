@@ -8,15 +8,21 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   RefreshCw,
   Sparkles,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-export const AuthScreen: React.FC = () => {
+interface AuthScreenProps {
+  onBackToLanding?: () => void;
+  defaultIsRegister?: boolean;
+}
+
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onBackToLanding, defaultIsRegister = true }) => {
   const { registerAccount, loginAccount, allUsers, switchUser } = useApp();
-  const [isRegister, setIsRegister] = useState(true);
+  const [isRegister, setIsRegister] = useState(defaultIsRegister);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +62,17 @@ export const AuthScreen: React.FC = () => {
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-[#EDF6F0]/60 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 space-y-6">
+        {/* Back to Platform Overview Navigation */}
+        {onBackToLanding && (
+          <button
+            onClick={onBackToLanding}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#575B62] hover:text-[#1C1E21] bg-white/80 hover:bg-white px-3 py-1.5 rounded-xl border border-[#E7E1D7] shadow-2xs transition cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#2D5A43]" />
+            <span>← Back to Platform Overview</span>
+          </button>
+        )}
+
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#2D5A43] text-white shadow-md font-black mb-2 border border-[#3D7457]">

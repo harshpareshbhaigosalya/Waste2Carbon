@@ -9,15 +9,17 @@ import {
   Sparkles,
   Shield,
   Layers,
+  Globe,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 interface NavbarProps {
   onOpenProfile?: () => void;
   onOpenVoiceAssistant?: () => void;
+  onOpenLanding?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenVoiceAssistant }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenVoiceAssistant, onOpenLanding }) => {
   const { currentUser, allUsers, switchUser, signOut } = useApp();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -129,6 +131,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenVoiceAssist
                 ))}
 
                 <div className="pt-2 border-t border-[#F0ECE4] space-y-1">
+                  {onOpenLanding && (
+                    <button
+                      onClick={() => {
+                        onOpenLanding();
+                        setAccountMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-[#2D5A43] hover:bg-[#EDF6F0] font-semibold transition cursor-pointer"
+                    >
+                      <Globe className="w-4 h-4" />
+                      <span>Platform Overview / Landing</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       signOut();
