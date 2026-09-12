@@ -3,6 +3,8 @@
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #0b1120;
+    color: #f1f5f9;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -10,16 +12,16 @@
   }
 }
 
-/* Custom styles for Leaflet map inside dark theme */
+/* Custom styles for Leaflet map */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  border-radius: 0.75rem;
-  background-color: #0f172a;
+  border-radius: 1rem;
+  background-color: #0b1120;
 }
 
 .leaflet-tile {
-  filter: brightness(0.85) contrast(1.1) invert(0.9) hue-rotate(180deg);
+  filter: brightness(0.88) contrast(1.1) invert(0.9) hue-rotate(180deg);
 }
 
 .leaflet-popup-content-wrapper {
@@ -41,12 +43,12 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #0b1120;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

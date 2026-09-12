@@ -1,19 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Plus,
-  Scale,
-  Award,
-  DollarSign,
-  Truck,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  FileCheck,
-  ChevronRight,
-  ShieldAlert,
-  Sparkles,
-} from 'lucide-react';
+import { Plus, Award, Scale, Clock, CheckCircle2, Truck, Calendar, MapPin, FileCheck } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AddWasteModal } from './AddWasteModal';
 
@@ -23,302 +9,195 @@ interface ProducerDashboardProps {
 
 export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCertificate }) => {
   const { currentUser, listings, pickupRequests, ledger, setSelectedCertificate } = useApp();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
-  // Filter listings by current user or demo
-  const userListings = listings.filter(
-    (l) => l.producer_id === currentUser?.id || currentUser?.role === 'producer'
+  // Listings for this producer
+  const myListings = listings.filter((l) => l.producer_id === currentUser?.id);
+
+  // Active accepted request awaiting pickup
+  const activePickup = pickupRequests.find(
+    (r) => r.producer_id === currentUser?.id && r.status === 'accepted'
   );
 
-  // Compute stats
-  const totalDivertedTons = userListings
+  const totalDivertedTons = myListings
     .filter((l) => l.status === 'collected')
     .reduce((acc, curr) => acc + curr.quantity_in_tons, 0);
 
-  const totalPotentialTons = userListings.reduce((acc, curr) => acc + curr.quantity_in_tons, 0);
-
-  const earnedCredits = currentUser?.carbon_credits_balance || 0;
-
-  const estimatedTotalEarnings = userListings.reduce(
-    (acc, curr) => acc + (curr.estimated_credit_value || 0),
-    0
-  );
-
-  // Active accepted pickup that needs handshake
-  const activeHandshakeRequest = pickupRequests.find(
-    (r) => (r.producer_id === currentUser?.id || currentUser?.role === 'producer') && r.status === 'accepted'
-  );
-
-  const filteredListings = userListings.filter((l) => {
-    if (statusFilter === 'all') return true;
-    return l.status === statusFilter;
-  });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'available':
-        return <span className="bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full text-xs font-semibold">Available</span>;
-      case 'requested':
-        return <span className="bg-amber-950/60 text-amber-400 border border-amber-800 px-2.5 py-1 rounded-full text-xs font-semibold">Requested</span>;
-      case 'matched':
-        return <span className="bg-sky-950/60 text-sky-400 border border-sky-800 px-2.5 py-1 rounded-full text-xs font-semibold">Matched / Scheduled</span>;
-      case 'collected':
-        return <span className="bg-emerald-950/60 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-          <CheckCircle2 className="w-3.5 h-3.5" /> Collected & Converted
-        </span>;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="space-y-6">
-      {/* Welcome & Action Banner */}
-      <div className="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-emerald-500/10 to-transparent pointer-events-none" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wide">
-                Waste Generator Portal
-              </span>
-              <span className="text-xs text-slate-400">· {currentUser?.entity_type.replace('_', ' ').toUpperCase()}</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1.5">
-              Welcome, {currentUser?.full_name || 'Partner'}
-            </h1>
-            <p className="text-sm text-slate-300 mt-1 max-w-xl">
-              Turn your organic and agricultural residues into verified permanent carbon credits and guaranteed revenue streams.
-            </p>
+      {/* Top Banner */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 uppercase">
+              Waste Producer Portal
+            </span>
+            <span className="text-xs text-slate-400">· {currentUser?.address || 'Local Region'}</span>
           </div>
-
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-emerald-950 transition transform hover:-translate-y-0.5"
-          >
-            <Plus className="w-5 h-5" />
-            <span>List New Waste Batch</span>
-          </button>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
+            {currentUser?.full_name}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            List your agricultural and organic waste, connect with nearby processing plants, and get certified carbon credits.
+          </p>
         </div>
+
+        <button
+          onClick={() => setIsAddOpen(true)}
+          className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-2xl shadow-xl shadow-emerald-950 transition shrink-0"
+        >
+          <Plus className="w-5 h-5" />
+          <span>+ Add Waste Listing</span>
+        </button>
       </div>
 
-      {/* Prominent Physical Handshake Card if Pickup Scheduled */}
-      {activeHandshakeRequest && (
-        <div className="bg-amber-950/40 border-2 border-amber-500/60 rounded-2xl p-5 shadow-2xl animate-pulse-slow">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="p-3 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 shrink-0">
-                <Truck className="w-6 h-6" />
+      {/* Prominent Physical Handshake Code Card */}
+      {activePickup && (
+        <div className="bg-gradient-to-r from-amber-950/60 to-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 shadow-2xl space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                  Pickup Scheduled & En Route!
+                </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                    Scheduled Collection Handshake
-                  </span>
-                  <span className="text-[11px] px-2 py-0.5 rounded bg-amber-900/60 text-amber-200">
-                    Pickup Scheduled
-                  </span>
-                </div>
-                <h3 className="text-base font-bold text-white mt-1">
-                  {activeHandshakeRequest.processor_name} is arriving for pickup!
-                </h3>
-                <p className="text-xs text-slate-300 mt-0.5">
-                  Feedstock: <strong>{activeHandshakeRequest.listing_title}</strong> ({activeHandshakeRequest.quantity_tons} tons)
-                </p>
-                <p className="text-xs text-amber-300/90 mt-1">
-                  👉 <strong>Driver will ask for your 6-digit verification code</strong> before loading to certify tonnages.
-                </p>
-              </div>
+              <h3 className="text-lg font-bold text-white">
+                {activePickup.processor_name} is arriving for collection
+              </h3>
+              <p className="text-xs text-slate-300">
+                Feedstock: <strong>{activePickup.listing_title}</strong> ({activePickup.quantity_tons} Tons)
+              </p>
+              <p className="text-xs text-amber-300">
+                👉 <strong>Show the 6-digit code below to the driver</strong> upon arrival to verify delivery and release your carbon credits:
+              </p>
             </div>
 
-            {/* Verification Code Box */}
-            <div className="bg-slate-900/90 border border-amber-500/50 rounded-xl px-5 py-3 text-center sm:text-right shrink-0 w-full sm:w-auto">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">
-                Your Handshake OTP
+            <div className="bg-slate-950 border-2 border-amber-500/80 rounded-2xl px-6 py-3.5 text-center shrink-0">
+              <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-medium">
+                Pickup Handshake OTP
               </span>
-              <span className="text-2xl sm:text-3xl font-mono font-extrabold text-amber-400 tracking-widest block">
-                {activeHandshakeRequest.verification_code}
-              </span>
-              <span className="text-[10px] text-slate-400 block mt-0.5">
-                Share this with driver on arrival
+              <span className="text-3xl sm:text-4xl font-mono font-black text-amber-400 tracking-widest block mt-0.5">
+                {activePickup.verification_code}
               </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Diverted from Landfills</span>
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <Scale className="w-4 h-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-extrabold text-white mt-2">
-            {totalDivertedTons} <span className="text-sm font-normal text-slate-400">Tons</span>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
+          <span className="text-xs text-slate-400">Total Waste Diverted</span>
+          <p className="text-2xl font-black text-white mt-1">
+            {totalDivertedTons} <span className="text-xs text-slate-400 font-normal">Tons</span>
           </p>
-          <p className="text-xs text-slate-400 mt-1">
-            Total active feedstock: {totalPotentialTons} t
-          </p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Diverted from landfills</p>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Certified Carbon Credits</span>
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <Award className="w-4 h-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-extrabold text-emerald-400 mt-2">
-            {earnedCredits.toFixed(1)} <span className="text-sm font-normal text-slate-400">tCO2e</span>
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
+          <span className="text-xs text-slate-400">Carbon Credits Balance</span>
+          <p className="text-2xl font-black text-emerald-400 mt-1">
+            {currentUser?.carbon_credits_balance || 0} <span className="text-xs text-slate-400 font-normal">Credits</span>
           </p>
-          <p className="text-xs text-emerald-400/80 mt-1">
-            1 Credit = 1 Ton verified CO2e
-          </p>
+          <p className="text-[11px] text-emerald-500 mt-0.5">1 Credit = 1 Ton verified CO2e</p>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Expected Value</span>
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-extrabold text-amber-400 mt-2">
-            ${estimatedTotalEarnings.toFixed(0)}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
+          <span className="text-xs text-slate-400">Active Listings</span>
+          <p className="text-2xl font-black text-sky-400 mt-1">
+            {myListings.length} <span className="text-xs text-slate-400 font-normal">Batches</span>
           </p>
-          <p className="text-xs text-slate-400 mt-1">
-            Feedstock sale + Carbon incentive
-          </p>
-        </div>
-
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Active Listings</span>
-            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-extrabold text-sky-400 mt-2">
-            {userListings.length} <span className="text-sm font-normal text-slate-400">Batches</span>
-          </p>
-          <p className="text-xs text-slate-400 mt-1">
-            {userListings.filter((l) => l.status === 'available').length} Available for matching
-          </p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Ready or in transit</p>
         </div>
       </div>
 
       {/* Listings Section */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div>
-            <h2 className="text-lg font-bold text-white">Your Feedstock Listings & Pickup Status</h2>
-            <p className="text-xs text-slate-400">Track listings, scheduled collections, and certified credits</p>
-          </div>
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <h2 className="text-base font-bold text-white">Your Listed Waste Batches</h2>
 
-          <div className="flex items-center gap-2">
-            {['all', 'available', 'requested', 'collected'].map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition ${
-                  statusFilter === st
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
+        {myListings.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 space-y-3">
+            <Scale className="w-10 h-10 mx-auto opacity-30" />
+            <p className="text-sm">You have not listed any waste batches yet.</p>
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="px-4 py-2 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 text-xs font-bold hover:bg-emerald-600 hover:text-white transition"
+            >
+              + Create First Waste Listing
+            </button>
           </div>
-        </div>
-
-        {/* Listings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredListings.length === 0 ? (
-            <div className="col-span-2 py-12 text-center text-slate-500">
-              <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No waste listings match this filter.</p>
-            </div>
-          ) : (
-            filteredListings.map((listing) => (
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {myListings.map((listing) => (
               <div
                 key={listing.id}
-                className="bg-slate-800/60 border border-slate-700/70 rounded-xl p-4 hover:border-slate-600 transition space-y-3"
+                className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-bold text-base text-white">{listing.title}</h3>
                     <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" /> Ready by: {listing.expected_ready_date}
+                      <Calendar className="w-3.5 h-3.5" /> Ready: {listing.expected_ready_date}
                     </p>
                   </div>
-                  {getStatusBadge(listing.status)}
+
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                      listing.status === 'collected'
+                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                        : listing.status === 'accepted'
+                        ? 'bg-amber-950 text-amber-300 border border-amber-800'
+                        : 'bg-slate-800 text-slate-300'
+                    }`}
+                  >
+                    {listing.status}
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 bg-slate-900/60 p-2.5 rounded-lg text-xs border border-slate-800">
+                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-900 p-2.5 rounded-xl border border-slate-800">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Quantity</span>
-                    <span className="font-semibold text-slate-200">
-                      {listing.quantity} {listing.unit}
+                    <span className="text-[10px] text-slate-500 block">Carbon Sequestration</span>
+                    <span className="font-bold text-emerald-400">
+                      {listing.estimated_co2_sequestered} Tons CO2e
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block">CO2 Sequestration</span>
-                    <span className="font-semibold text-emerald-400">
-                      {listing.estimated_co2_sequestered} tCO2e
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block">Credit Value</span>
-                    <span className="font-semibold text-amber-400">
-                      ${listing.estimated_credit_value}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Status Specific Information */}
-                {listing.assigned_processor_name && (
-                  <div className="text-xs text-slate-300 bg-slate-900/40 p-2 rounded-lg border border-slate-800/80">
-                    <span className="text-slate-400">Matched Processor: </span>
-                    <span className="font-semibold text-white">{listing.assigned_processor_name}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-2 border-t border-slate-700/60 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400 text-[11px]">OTP Code:</span>
-                    <span className="font-mono font-bold bg-slate-900 px-2 py-0.5 rounded text-amber-400 border border-slate-700">
+                    <span className="text-[10px] text-slate-500 block">Pickup Code</span>
+                    <span className="font-mono font-bold text-amber-400">
                       {listing.verification_otp}
                     </span>
                   </div>
+                </div>
 
-                  {listing.status === 'collected' ? (
+                {listing.assigned_processor_name && (
+                  <p className="text-xs text-slate-400">
+                    Buyer: <strong className="text-white">{listing.assigned_processor_name}</strong>
+                  </p>
+                )}
+
+                {listing.status === 'collected' && (
+                  <div className="pt-2 border-t border-slate-800 flex justify-end">
                     <button
                       onClick={() => {
-                        const entry = ledger.find((l) => l.user_id === currentUser?.id || l.user_role === 'producer');
+                        const entry = ledger.find((l) => l.user_id === currentUser?.id);
                         if (entry) setSelectedCertificate(entry);
                         onOpenCertificate();
                       }}
-                      className="flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-1 rounded-lg transition"
+                      className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-800 transition"
                     >
                       <FileCheck className="w-3.5 h-3.5" />
-                      <span>View Certificate</span>
+                      <span>View Carbon Certificate</span>
                     </button>
-                  ) : (
-                    <span className="text-[11px] text-slate-400">Awaiting processor pickup</span>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <AddWasteModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddWasteModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
     </div>
   );
 };
