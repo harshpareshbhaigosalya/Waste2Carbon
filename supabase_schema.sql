@@ -13,14 +13,20 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS document_type TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS document_number TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS document_url TEXT;
 
--- 3. Add Price Negotiation columns to pickup_requests table
+-- 3. Add Price Negotiation and Smart Cluster columns to pickup_requests table
 ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS negotiation_status TEXT DEFAULT 'none';
 ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS original_price_per_ton NUMERIC;
 ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS counter_price_per_ton NUMERIC;
 ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS last_negotiated_by TEXT;
 ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS negotiation_notes TEXT;
 
--- 4. Create or update admin account
+-- 4. Add Smart Clustering & Route Aggregation columns
+ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS cluster_id TEXT;
+ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS cluster_name TEXT;
+ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS scheduled_pickup_date DATE;
+ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS cluster_notification_sent BOOLEAN DEFAULT false;
+
+-- 5. Create or update admin account
 INSERT INTO public.profiles (id, email, full_name, phone, role, entity_type, onboarded, verified, carbon_credits_balance)
 VALUES ('admin-root', 'admin@gmail.com', 'System Administrator', '+91 99999 99999', 'admin', 'admin', true, true, 0.0)
 ON CONFLICT (id) DO UPDATE SET role = 'admin', onboarded = true, verified = true;

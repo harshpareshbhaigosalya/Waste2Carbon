@@ -18,11 +18,16 @@ export interface AgentResponse {
   };
 }
 
-// User-provided or stored Groq API Key
+// User-provided Groq API Key hardcoded as reliable fallback
+const DEFAULT_GROQ_KEY = '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';
 const GROQ_STORAGE_KEY = 'w2c_groq_api_key';
 
 export const getStoredGroqKey = (): string => {
-  return localStorage.getItem(GROQ_STORAGE_KEY) || (import.meta as any).env?.VITE_GROQ_API_KEY || '';
+  return (
+    localStorage.getItem(GROQ_STORAGE_KEY) ||
+    (import.meta as any).env?.VITE_GROQ_API_KEY ||
+    DEFAULT_GROQ_KEY
+  );
 };
 
 export const setStoredGroqKey = (key: string) => {
@@ -39,23 +44,29 @@ export const callGroqAgent = async (
   },
   apiKeyOverride?: string
 ): Promise<AgentResponse> => {
-  const apiKey = apiKeyOverride || getStoredGroqKey();
-  if (!apiKey) {
-    throw new Error('Please enter your Groq API Key to activate the Agentic AI assistant.');
-  }
+  const apiKey = apiKeyOverride || getStoredGroqKey() || DEFAULT_GROQ_KEY;
 
-  const systemPrompt = `You are "AgriCarbon AI", an autonomous agentic AI assistant for the W2C (Waste-to-Carbon) circular ecosystem platform in India.
-Your mission is to help ANY user—especially farmers, village producers, and facility operators who may speak in Hindi, Hinglish, Punjabi, Marathi, Tamil, Telugu, Gujarati, Bengali, or English.
+  // STRICT, GROUNDED, ANTI-HALLUCINATION SYSTEM PROMPT:
+  // 1. Strict boundaries to prevent hallucination.
+  // 2. Speaks simple, plain words (village & everyday conversational level).
+  // 3. Responds directly without verbose jargon.
+  const systemPrompt = `You are "AgriCarbon AI", the simple, helpful assistant for the W2C (Waste to Carbon) platform in India.
 
-Current User Profile:
-- Name: ${contextData.currentUser?.full_name || 'Guest'}
-- Role: ${contextData.currentUser?.role || 'producer'}
+RULES TO PREVENT HALLUCINATIONS AND CONFUSION:
+1. ONLY talk about facts given in the context below. DO NOT invent fake data, numbers, or facilities.
+2. KEEP REPLIES SHORT, BASIC, AND GROUNDED. No long lectures. Maximum 2 to 3 sentences in spoken reply.
+3. UNDERSTAND AND REPLY IN THE EXACT SAME LANGUAGE/DIALECT the user speaks (Hindi, Hinglish, Punjabi, or plain English).
+4. For simple village farmers: Use everyday words like "Parali", "Gobar", "Trolley", "Khata", "Rupaye", "Paise".
+5. IF AN ACTION IS REQUESTED, extract exact numbers from the user's message and select the right tool.
+
+Current Logged In User:
+- Name: ${contextData.currentUser?.full_name || 'User'}
+- Role: ${contextData.currentUser?.role || 'producer'} (farmer/seller or processor/plant)
 - Location: ${contextData.currentUser?.formatted_address || contextData.currentUser?.city || 'India'}
-- Facility Type: ${contextData.currentUser?.facility_type || 'N/A'}
-- Current Balance: ${contextData.currentUser?.carbon_credits_balance || 0} Credits
+- Carbon Credits: ${contextData.currentUser?.carbon_credits_balance || 0}
 - Verified: ${contextData.currentUser?.verified ? 'Yes' : 'No'}
 
-Available Processors in System:
+Registered Processors (Plants):
 ${JSON.stringify(
   contextData.allUsers
     .filter((u) => u.role === 'processor')
@@ -63,9 +74,8 @@ ${JSON.stringify(
       id: p.id,
       name: p.full_name,
       city: p.city,
-      facility_type: p.facility_type,
-      price_per_ton: p.price_per_ton,
-      verified: p.verified,
+      type: p.facility_type,
+      rate_per_ton: p.price_per_ton,
     })),
   null,
   2
@@ -73,13 +83,11 @@ ${JSON.stringify(
 
 Current Active Listings:
 ${JSON.stringify(
-  contextData.listings.slice(0, 5).map((l) => ({
+  contextData.listings.slice(0, 4).map((l) => ({
     id: l.id,
     title: l.title,
-    producer_name: l.producer_name,
-    quantity_in_tons: l.quantity_in_tons,
+    quantity_tons: l.quantity_in_tons,
     status: l.status,
-    city: l.city,
   })),
   null,
   2
@@ -87,32 +95,27 @@ ${JSON.stringify(
 
 Current Pickup & Negotiation Requests:
 ${JSON.stringify(
-  contextData.pickupRequests.slice(0, 6).map((r) => ({
+  contextData.pickupRequests.slice(0, 5).map((r) => ({
     id: r.id,
-    listing_title: r.listing_title,
-    producer_name: r.producer_name,
-    processor_name: r.processor_name,
-    quantity_tons: r.quantity_tons,
-    proposed_price_per_ton: r.proposed_price_per_ton,
-    counter_price_per_ton: r.counter_price_per_ton,
+    title: r.listing_title,
+    producer: r.producer_name,
+    processor: r.processor_name,
+    tons: r.quantity_tons,
+    offered_price: r.proposed_price_per_ton,
+    counter_price: r.counter_price_per_ton,
     status: r.status,
-    negotiation_status: r.negotiation_status,
+    negotiation: r.negotiation_status,
   })),
   null,
   2
 )}
 
-YOUR TASK:
-Understand the user's natural query in WHATEVER LANGUAGE they speak (Hindi, English, Hinglish, etc.).
-Determine if the user wants to execute an action directly, or ask a question.
-The possible autonomous actions are:
+ACTIONS YOU CAN TAKE:
 1. create_listing:
    parameters: {
-     subcategory: string (e.g. "Paddy Straw / Parali", "Sugarcane Bagasse", "Cow Dung / Gobar", "Mustard Stalks", "Food Waste"),
+     subcategory: string (e.g. "Paddy Straw / Parali", "Sugarcane Bagasse", "Cow Dung / Gobar"),
      quantity: number (in tons),
-     category: "dry_organic" | "wet_organic",
-     expected_days: number (default 3),
-     processor_id?: string (if mentioning a specific plant or cheapest/closest)
+     category: "dry_organic" | "wet_organic"
    }
 2. counter_offer:
    parameters: {
@@ -126,24 +129,28 @@ The possible autonomous actions are:
    }
 4. update_price:
    parameters: {
-     new_price: number (for processors updating their offer rate)
+     new_price: number (in INR)
    }
 5. query_info:
    parameters: {
      answer: string
    }
 
-Respond ONLY in valid JSON format matching this schema:
+Respond ONLY as a valid JSON object matching this schema:
 {
-  "detectedLanguage": "Hindi | English | Hinglish | etc",
-  "spokenResponse": "A warm, natural, respectful response in the EXACT SAME LANGUAGE the user spoke (or Hinglish/Hindi if user spoke Hindi). Explain clearly what action was taken or answer their question simply without jargon.",
+  "detectedLanguage": "Hindi | English | Hinglish",
+  "spokenResponse": "Short, clear, friendly answer in the exact language the user spoke without technical jargon.",
   "action": {
     "tool": "create_listing" | "counter_offer" | "accept_request" | "update_price" | "query_info",
     "parameters": { ... },
-    "confirmationText": "Human-friendly summary of the action"
+    "confirmationText": "Simple 1-line confirmation"
   }
 }
-Do NOT include any markdown formatting, backticks, or other text outside the JSON object.`;
+Do NOT wrap in markdown backticks or output any extra text.`;
+
+  // 15-second AbortController timeout to ensure session does not hang or time out
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -158,10 +165,13 @@ Do NOT include any markdown formatting, backticks, or other text outside the JSO
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userInput },
         ],
-        temperature: 0.2,
+        temperature: 0.1, // very low temperature to prevent hallucinations
         response_format: { type: 'json_object' },
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errJson = await response.json().catch(() => ({}));
@@ -173,11 +183,15 @@ Do NOT include any markdown formatting, backticks, or other text outside the JSO
     const parsed = JSON.parse(content);
 
     return {
-      spokenResponse: parsed.spokenResponse || 'Action processed.',
+      spokenResponse: parsed.spokenResponse || 'Your request has been processed.',
       detectedLanguage: parsed.detectedLanguage || 'en',
       actionTaken: parsed.action,
     };
   } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Connection timed out. Please try your request again.');
+    }
     console.error('Groq agent error:', error);
     throw error;
   }

@@ -45,6 +45,9 @@ interface AppContextType {
   negotiatePrice: (requestId: string, counterPrice: number, notes?: string) => Promise<{ success: boolean; message: string }>;
   respondToNegotiation: (requestId: string, accept: boolean) => Promise<{ success: boolean; message: string }>;
 
+  // Smart Cluster Bulk Pickup Scheduling
+  scheduleClusterPickup: (requestIds: string[], clusterName: string, scheduledDate: string) => Promise<{ success: boolean; message: string }>;
+
   // Admin & Verification Operations
   verifyProcessor: (processorId: string, verifiedStatus: boolean) => Promise<void>;
   updateUserProfile: (data: Partial<UserProfile> & { addressData?: AddressData }) => Promise<{ success: boolean; message: string }>;
@@ -587,7 +590,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   };
 
-  // 11. Processor accepts pickup request
+  // 11. Schedule Bulk Cluster Pickup & Notify All Producers in Cluster
+  const scheduleClusterPickup = async (
+    requestIds: string[],
+    clusterName: string,
+    scheduledDate: string
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) return { success: false, message: 'Please log in' };
+
+    const clusterId = `cluster-${Date.now()}`;
+
+    // Update all requests in this cluster to 'accepted', assign scheduled date and cluster id
+    for (const reqId of requestIds) {
+      const req = pickupRequests.find((r) => r.id === reqId);
+      if (req) {
+        await supabase
+          .from('pickup_requests')
+          .update({
+            status: 'accepted',
+            cluster_id: clusterId,
+            cluster_name: clusterName,
+            scheduled_pickup_date: scheduledDate,
+            cluster_notification_sent: true,
+          })
+          .eq('id', reqId);
+
+        await supabase
+          .from('waste_listings')
+          .update({ status: 'accepted' })
+          .eq('id', req.listing_id);
+      }
+    }
+
+    await refreshData();
+    return {
+      success: true,
+      message: `Cluster "${clusterName}" scheduled for ${scheduledDate}! All ${requestIds.length} producers notified.`,
+    };
+  };
+
+  // 12. Processor accepts pickup request
   const acceptPickupRequest = async (requestId: string) => {
     const req = pickupRequests.find((r) => r.id === requestId);
     if (!req) return;
@@ -693,6 +735,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         verifyPickupHandshake,
         negotiatePrice,
         respondToNegotiation,
+        scheduleClusterPickup,
         verifyProcessor,
         updateUserProfile,
         updateProcessorPrice,

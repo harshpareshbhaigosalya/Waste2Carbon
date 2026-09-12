@@ -169,11 +169,16 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
                 <span className="text-xs font-extrabold text-amber-900 uppercase tracking-wider">
-                  Pickup Scheduled & En Route!
+                  {activePickup.cluster_name ? `Bulk Route Scheduled (${activePickup.cluster_name})` : 'Pickup Scheduled & En Route!'}
                 </span>
+                {activePickup.scheduled_pickup_date && (
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-800 text-white uppercase">
+                    Arrival Date: {activePickup.scheduled_pickup_date}
+                  </span>
+                )}
               </div>
               <h3 className="text-lg font-black text-slate-900">
-                {activePickup.processor_name} is arriving for collection
+                {activePickup.processor_name} is arriving for bulk collection
               </h3>
               <p className="text-xs text-slate-700">
                 Feedstock: <strong>{activePickup.listing_title}</strong> ({activePickup.quantity_tons} Tons) · Agreed Rate:{' '}
@@ -181,6 +186,11 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                   ₹{activePickup.proposed_price_per_ton.toLocaleString('en-IN')}/ton
                 </strong>
               </p>
+              {activePickup.scheduled_pickup_date && (
+                <p className="text-xs font-semibold text-emerald-900 bg-emerald-100/80 p-2 rounded-xl border border-emerald-300">
+                  📅 <strong>Facility Dispatch Notice:</strong> The processor has grouped your farm with nearby sellers on their route and confirmed arrival on <strong>{activePickup.scheduled_pickup_date}</strong>.
+                </p>
+              )}
               <p className="text-xs text-amber-900">
                 👉 <strong>Show the 6-digit code below to the driver</strong> upon arrival to verify delivery and release your carbon credits:
               </p>

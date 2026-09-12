@@ -21,6 +21,9 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { PickupRequest } from '../../types';
+import { SmartClusterView } from './SmartClusterView';
+import { generateWasteClusters, ClusterPoint, WasteCluster } from '../../lib/clusteringOptimizer';
+import { Layers } from 'lucide-react';
 
 interface ProcessorDashboardProps {
   onOpenCertificate: () => void;
@@ -36,6 +39,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
   const {
     currentUser,
     pickupRequests,
+    listings,
     acceptPickupRequest,
     verifyPickupHandshake,
     ledger,
@@ -44,8 +48,10 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
     updateProcessorPrice,
     negotiatePrice,
     respondToNegotiation,
+    scheduleClusterPickup,
   } = useApp();
 
+  const [activeTab, setActiveTab] = useState<'requests' | 'clusters'>('clusters');
   const [activeHandshakeReq, setActiveHandshakeReq] = useState<PickupRequest | null>(null);
   const [enteredOtp, setEnteredOtp] = useState('');
   const [handshakeError, setHandshakeError] = useState('');
@@ -64,6 +70,70 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
   // Requests for this processor
   const myRequests = pickupRequests.filter((r) => r.processor_id === currentUser?.id);
+
+  // Compute Smart Clusters from pending requests & available listings in geographic radius
+  const facilityLat = currentUser?.latitude || 28.6139;
+  const facilityLng = currentUser?.longitude || 77.2090;
+
+  // Build cluster points list from all incoming requests and available local listings
+  const clusterPoints: ClusterPoint[] = React.useMemo(() => {
+    const points: ClusterPoint[] = [];
+
+    // From pickup requests
+    myRequests
+      .filter((r) => r.status !== 'collected')
+      .forEach((r) => {
+        // match listing for coordinates if possible
+        const l = listings.find((x) => x.id === r.listing_id);
+        const lat = l?.latitude || facilityLat + (Math.random() - 0.5) * 0.15;
+        const lng = l?.longitude || facilityLng + (Math.random() - 0.5) * 0.15;
+        points.push({
+          id: r.id,
+          producer_name: r.producer_name,
+          producer_phone: r.producer_phone,
+          location_name: r.producer_address || `${l?.city || 'Village Area'}, ${l?.state || 'India'}`,
+          latitude: lat,
+          longitude: lng,
+          quantity_tons: r.quantity_tons,
+          waste_subcategory: l?.waste_subcategory || 'Biomass Feedstock',
+          proposed_date: r.proposed_pickup_date,
+          price_per_ton: r.proposed_price_per_ton,
+          status: r.status,
+        });
+      });
+
+    // Also include available unassigned listings matching facility technology
+    listings
+      .filter(
+        (l) =>
+          l.status === 'available' &&
+          !points.some((p) => p.id === l.id) &&
+          (currentUser?.facility_type === 'biochar'
+            ? l.waste_category === 'dry_organic'
+            : l.waste_category === 'wet_organic')
+      )
+      .forEach((l) => {
+        points.push({
+          id: l.id,
+          producer_name: l.producer_name,
+          producer_phone: l.producer_phone,
+          location_name: l.formatted_address || `${l.city}, ${l.state}`,
+          latitude: l.latitude,
+          longitude: l.longitude,
+          quantity_tons: l.quantity_in_tons,
+          waste_subcategory: l.waste_subcategory,
+          proposed_date: l.expected_ready_date,
+          price_per_ton: currentUser?.price_per_ton || 2500,
+          status: 'available',
+        });
+      });
+
+    return points;
+  }, [myRequests, listings, currentUser, facilityLat, facilityLng]);
+
+  const computedClusters = React.useMemo(() => {
+    return generateWasteClusters(facilityLat, facilityLng, clusterPoints, 30);
+  }, [facilityLat, facilityLng, clusterPoints]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -323,20 +393,67 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
         </div>
       </div>
 
-      {/* Requests Table / Cards */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
-        <h2 className="text-base font-black text-slate-900">Feedstock Intake & Negotiation Queue</h2>
+      {/* Main Tabs: Smart Bulk Clusters vs Individual Queue */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setActiveTab('clusters')}
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition cursor-pointer shadow-xs ${
+            activeTab === 'clusters'
+              ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-md'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Layers className="w-4 h-4 text-amber-300" />
+          <span>Smart AI Clusters & Routes ({computedClusters.length})</span>
+          <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-400 text-emerald-950 font-black uppercase">
+            Bulk Logistics
+          </span>
+        </button>
 
-        {myRequests.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 space-y-2">
-            <Truck className="w-10 h-10 mx-auto opacity-40 text-amber-600" />
-            <p className="text-sm font-medium text-slate-700">No incoming waste requests in database yet.</p>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              When a nearby farmer lists waste and selects your facility, their request will appear here in real time!
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
+        <button
+          onClick={() => setActiveTab('requests')}
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition cursor-pointer shadow-xs ${
+            activeTab === 'requests'
+              ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-md'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Truck className="w-4 h-4 text-amber-300" />
+          <span>Individual Requests & Negotiations ({myRequests.length})</span>
+        </button>
+      </div>
+
+      {/* Tab Content: Clusters View */}
+      {activeTab === 'clusters' && (
+        <SmartClusterView
+          clusters={computedClusters}
+          facilityLocation={{
+            lat: facilityLat,
+            lng: facilityLng,
+            name: currentUser?.full_name || 'Your Facility',
+          }}
+          onScheduleCluster={async (cluster, date) => {
+            const reqIds = cluster.points.map((p) => p.id);
+            await scheduleClusterPickup(reqIds, cluster.name, date);
+          }}
+        />
+      )}
+
+      {/* Tab Content: Individual Requests Table / Cards */}
+      {activeTab === 'requests' && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <h2 className="text-base font-black text-slate-900">Feedstock Intake & Negotiation Queue</h2>
+
+          {myRequests.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 space-y-2">
+              <Truck className="w-10 h-10 mx-auto opacity-40 text-amber-600" />
+              <p className="text-sm font-medium text-slate-700">No incoming waste requests in database yet.</p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                When a nearby farmer lists waste and selects your facility, their request will appear here in real time!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
             {myRequests.map((req) => {
               const isCounteredByProducer = req.negotiation_status === 'countered_by_producer';
               const isCounteredByMe = req.negotiation_status === 'countered_by_processor';
@@ -480,6 +597,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           </div>
         )}
       </div>
+    )}
 
       {/* Handshake OTP Verification Modal */}
       {activeHandshakeReq && (

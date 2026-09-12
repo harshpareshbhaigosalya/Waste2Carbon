@@ -95,6 +95,12 @@ export interface PickupRequest {
   last_negotiated_by?: 'producer' | 'processor';
   negotiation_notes?: string;
 
+  // Smart Cluster & Route Aggregation
+  cluster_id?: string;
+  cluster_name?: string;
+  scheduled_pickup_date?: string;
+  cluster_notification_sent?: boolean;
+
   verification_code: string;
   status: 'pending' | 'accepted' | 'collected';
   credits_awarded?: number;

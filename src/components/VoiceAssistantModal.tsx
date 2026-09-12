@@ -38,7 +38,7 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
   } = useApp();
 
   const [apiKey, setApiKey] = useState(getStoredGroqKey());
-  const [showKeyInput, setShowKeyInput] = useState(!getStoredGroqKey());
+  const [showKeyInput, setShowKeyInput] = useState(false);
   const [queryText, setQueryText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
