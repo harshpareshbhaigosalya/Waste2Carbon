@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
-import { User, Phone, Building, CheckCircle2, ArrowRight, DollarSign, Sprout, Factory, AlertCircle, FileText, Upload, ShieldAlert } from 'lucide-react';
+import {
+  User,
+  Phone,
+  Building,
+  CheckCircle2,
+  ArrowRight,
+  DollarSign,
+  Sprout,
+  Factory,
+  AlertCircle,
+  FileText,
+  Upload,
+  ShieldAlert,
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { UserRole, EntityType, AddressData } from '../types';
 import { LocationPicker } from './LocationPicker';
@@ -10,7 +23,7 @@ export const OnboardingScreen: React.FC = () => {
   const [role, setRole] = useState<UserRole>('producer');
   const [fullName, setFullName] = useState(currentUser?.full_name || '');
   const [phone, setPhone] = useState('');
-  
+
   // Structured Address Data
   const [addressData, setAddressData] = useState<AddressData>({
     street_address: '',
@@ -25,7 +38,7 @@ export const OnboardingScreen: React.FC = () => {
   // Processor settings
   const [facilityType, setFacilityType] = useState<'biochar' | 'biogas'>('biochar');
   const [pricePerTon, setPricePerTon] = useState<number>(2500);
-  
+
   // Verification Document for Processors
   const [documentType, setDocumentType] = useState('SPCB Consent to Operate (CTO)');
   const [documentNumber, setDocumentNumber] = useState('');
@@ -63,248 +76,222 @@ export const OnboardingScreen: React.FC = () => {
 
     setIsSubmitting(true);
 
-    const entityType: EntityType =
-      role === 'producer'
-        ? 'farm'
-        : facilityType === 'biochar'
-        ? 'biochar_facility'
-        : 'biogas_facility';
-
     const res = await completeOnboarding({
       full_name: fullName,
       phone,
       role,
-      entity_type: entityType,
+      entity_type: role === 'producer' ? 'farm' : facilityType === 'biochar' ? 'biochar_facility' : 'biogas_facility',
       facility_type: role === 'processor' ? facilityType : undefined,
       price_per_ton: role === 'processor' ? pricePerTon : undefined,
       document_type: role === 'processor' ? documentType : undefined,
       document_number: role === 'processor' ? documentNumber : undefined,
-      document_name: role === 'processor' ? (documentFileName || 'Compliance_Certificate.pdf') : undefined,
+      document_name: role === 'processor' ? documentFileName || 'compliance_doc.pdf' : undefined,
       addressData,
     });
 
     setIsSubmitting(false);
+
     if (!res.success) {
       setErrorMessage(res.message);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-6 selection:bg-emerald-500 selection:text-white">
-      <div className="w-full max-w-2xl relative z-10 space-y-6 my-8">
-        {/* Onboarding Header */}
-        <div className="text-center space-y-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-950 px-3 py-1 rounded-full border border-emerald-800">
-            One-Time Profile Setup · Stored in Supabase
+    <div className="min-h-screen bg-[#fcfbf7] flex flex-col justify-center items-center p-4 sm:p-6 relative">
+      <div className="absolute top-10 -left-20 w-80 h-80 bg-amber-200/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 -right-20 w-80 h-80 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-2xl relative z-10 space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+            Profile Setup
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Complete Your Organization Profile</h1>
-          <p className="text-xs text-slate-400">
-            Set up your entity type, contact number, and precise pickup/facility location.
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Complete Your W2C Profile
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+            Choose your role in India's circular carbon value chain. Your address helps match local waste generators with conversion plants.
           </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-          {errorMessage && (
-            <div className="p-3.5 rounded-xl border border-rose-800 bg-rose-950/70 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
+        {/* Card */}
+        <div className="bg-white border-2 border-amber-200/90 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* 1. Entity Role Selector */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-                1. Select Platform Role
+            {/* Role Selection */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                1. Select Your Platform Role <span className="text-emerald-700">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div
+                <button
+                  type="button"
                   onClick={() => setRole('producer')}
-                  className={`cursor-pointer p-4 rounded-2xl border transition-all text-left ${
+                  className={`p-4 rounded-2xl border-2 text-left transition flex items-start gap-3 cursor-pointer ${
                     role === 'producer'
-                      ? 'bg-emerald-950/70 border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg'
-                      : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400'
+                      ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <Sprout className={`w-5 h-5 ${role === 'producer' ? 'text-emerald-400' : 'text-slate-500'}`} />
-                    {role === 'producer' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 ${
+                      role === 'producer' ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <Sprout className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-sm text-white mt-2">Waste Producer / Seller</h3>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    Farms, food industries, and municipal generators who have waste to divert.
-                  </p>
-                </div>
-
-                <div
-                  onClick={() => setRole('processor')}
-                  className={`cursor-pointer p-4 rounded-2xl border transition-all text-left ${
-                    role === 'processor'
-                      ? 'bg-amber-950/70 border-amber-500 ring-2 ring-amber-500/20 shadow-lg'
-                      : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <Factory className={`w-5 h-5 ${role === 'processor' ? 'text-amber-400' : 'text-slate-500'}`} />
-                    {role === 'processor' && <CheckCircle2 className="w-4 h-4 text-amber-400" />}
-                  </div>
-                  <h3 className="font-bold text-sm text-white mt-2">Waste Processor / Buyer</h3>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    Biochar pyrolysis and anaerobic biogas plants buying organic waste.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Basic Info */}
-            <div className="space-y-3.5 pt-2 border-t border-slate-800">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-                2. Contact & Organization Details
-              </label>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                    {role === 'producer' ? 'Farmer / Business Name' : 'Facility / Company Name'} <span className="text-emerald-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <Building className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
-                    <input
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      placeholder={role === 'producer' ? 'e.g. GreenField Farms (John)' : 'e.g. Apex Biochar Plant'}
-                      className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                    Contact Phone Number <span className="text-emerald-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                      placeholder="e.g. +91 98765 43210"
-                      className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Location Picker with Map & Search */}
-            <div className="pt-2 border-t border-slate-800">
-              <LocationPicker
-                value={addressData}
-                onChange={setAddressData}
-                label={role === 'producer' ? 'Farm / Pickup Location' : 'Processing Facility Location'}
-              />
-            </div>
-
-            {/* 4. Processor Specific Details & Verification Documents */}
-            {role === 'processor' && (
-              <div className="space-y-4 pt-3 border-t border-slate-800 bg-slate-950/70 p-5 rounded-2xl border border-amber-500/30">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                    <Factory className="w-4 h-4" />
-                    <span>Facility Intake & Verification Settings</span>
-                  </span>
-                  <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded-full font-semibold">
-                    Admin Approval Required
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                      Conversion Technology
-                    </label>
+                    <h3 className="font-bold text-sm text-slate-900">Waste Producer</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Farmer, FPO, Food Industry, Municipality generating organic waste.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRole('processor')}
+                  className={`p-4 rounded-2xl border-2 text-left transition flex items-start gap-3 cursor-pointer ${
+                    role === 'processor'
+                      ? 'border-amber-500 bg-amber-50/70 shadow-sm'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                  }`}
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 ${
+                      role === 'processor' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <Factory className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900">Conversion Facility</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Biochar Pyrolysis or Biogas Digester plant converting biomass.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Full Name / Enterprise Name <span className="text-emerald-700">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Green Valley Agro FPO / Ramesh Sharma"
+                  required
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Contact Phone Number <span className="text-emerald-700">*</span>
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
+                  required
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+                />
+              </div>
+            </div>
+
+            {/* Processor Specific: Facility Settings & Compliance Document */}
+            {role === 'processor' && (
+              <div className="bg-amber-50/70 border-2 border-amber-300 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Factory className="w-4 h-4 text-amber-700" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                    Facility Details & Compliance Verification
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Plant Technology</label>
                     <select
                       value={facilityType}
                       onChange={(e) => setFacilityType(e.target.value as any)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-600"
                     >
-                      <option value="biochar">Biochar Pyrolysis (Dry Stubble/Wood)</option>
-                      <option value="biogas">Anaerobic Biogas (Wet Food/Manure)</option>
+                      <option value="biochar">Biochar Pyrolysis Plant</option>
+                      <option value="biogas">Biogas / Bio-CNG Digester</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                      Offered Buying Price (₹ per ton)
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Offer Buying Rate (₹ / Ton)
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-sm font-bold text-amber-400">₹</span>
-                      <input
-                        type="number"
-                        min="200"
-                        max="20000"
-                        step="50"
-                        value={pricePerTon}
-                        onChange={(e) => setPricePerTon(parseFloat(e.target.value) || 2500)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      step="50"
+                      value={pricePerTon}
+                      onChange={(e) => setPricePerTon(Number(e.target.value))}
+                      className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-amber-600"
+                    />
                   </div>
                 </div>
 
-                {/* Compliance & Verification Document Upload Section */}
-                <div className="pt-3 border-t border-slate-800 space-y-3">
+                {/* Verification Document Upload */}
+                <div className="pt-2 border-t border-amber-200/80 space-y-3">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs font-bold text-slate-200">
-                      Compliance & Certification Document (For Admin Verification)
+                    <FileText className="w-4 h-4 text-amber-700" />
+                    <span className="text-xs font-bold text-amber-900">
+                      Compliance License / SPCB Verification Document
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                        Document Classification <span className="text-amber-400">*</span>
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                        Document Type <span className="text-emerald-700">*</span>
                       </label>
                       <select
                         value={documentType}
                         onChange={(e) => setDocumentType(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none"
                       >
-                        <option value="SPCB Consent to Operate (CTO)">State Pollution Board (SPCB) CTO License</option>
-                        <option value="Factory / Industrial Kiln Permit">Factory License / Pyrolysis Permit</option>
-                        <option value="MSME / GST Registration Certificate">MSME / GST Registration Certificate</option>
-                        <option value="EBC / Biochar Quality Certification">European Biochar (EBC) / ISO Standard</option>
+                        <option value="SPCB Consent to Operate (CTO)">SPCB Consent to Operate (CTO)</option>
+                        <option value="Pollution Control Board License">Pollution Control Board License</option>
+                        <option value="Municipal Waste Processing Authorization">Municipal Waste Handling Permit</option>
+                        <option value="Factory Inspectorate License">Factory Inspectorate License</option>
+                        <option value="GST / MSME Registration">MSME / Udyam Certificate</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                        Document / License Number <span className="text-amber-400">*</span>
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                        License / Registration Number <span className="text-emerald-700">*</span>
                       </label>
                       <input
                         type="text"
                         value={documentNumber}
                         onChange={(e) => setDocumentNumber(e.target.value)}
-                        required={role === 'processor'}
-                        placeholder="e.g. SPCB/CTO/2026/0892"
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                        required
+                        placeholder="e.g. SPCB/CTO/2026/8941"
+                        className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none"
                       />
                     </div>
                   </div>
 
-                  {/* File Upload simulation */}
+                  {/* File Upload Input */}
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                      Upload Certificate Copy (PDF / Image)
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      Upload Document Copy (PDF / Image)
                     </label>
-                    <label className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-slate-700 hover:border-amber-500/60 bg-slate-900/60 cursor-pointer transition text-xs text-slate-400 hover:text-white">
-                      <Upload className="w-4 h-4 text-amber-400" />
-                      <span>{documentFileName ? `Uploaded: ${documentFileName}` : 'Choose Certificate File (PDF / PNG / JPG)'}</span>
+                    <label className="flex items-center justify-center gap-2 border-2 border-dashed border-amber-300 rounded-xl p-3 bg-white hover:bg-amber-50 cursor-pointer transition text-xs font-semibold text-amber-900">
+                      <Upload className="w-4 h-4 text-amber-700" />
+                      <span>{documentFileName || 'Choose File or Drag & Drop'}</span>
                       <input
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg"
@@ -317,13 +304,31 @@ export const OnboardingScreen: React.FC = () => {
               </div>
             )}
 
-            {/* Submit Button */}
+            {/* Structured Location Picker with Leaflet Interactive Map */}
+            <div className="pt-2 border-t border-slate-200">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+                2. Farm / Facility Location & Address <span className="text-emerald-700">*</span>
+              </label>
+              <LocationPicker
+                value={addressData}
+                onChange={setAddressData}
+                label="Physical Address & Geocoded Coordinates"
+              />
+            </div>
+
+            {errorMessage && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-950 transition flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-800 hover:to-emerald-700 text-white font-black text-xs py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <span>{isSubmitting ? 'Saving to Database...' : 'Save Profile in Supabase & Enter Dashboard'}</span>
+              <span>{isSubmitting ? 'Saving to Supabase Database...' : 'Save Profile & Enter Platform'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

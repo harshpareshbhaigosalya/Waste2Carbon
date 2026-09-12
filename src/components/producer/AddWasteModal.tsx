@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Sprout, CheckCircle2, Calendar, Truck, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Sprout, CheckCircle2, Calendar, Truck, AlertCircle, Loader2, ArrowUpDown, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { WasteCategory, WasteUnit, AddressData } from '../../types';
 import { calculateCarbonMetrics } from '../../lib/carbonCalculator';
@@ -102,234 +102,234 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-white border-2 border-amber-200/90 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/50">
+        <div className="flex items-center justify-between p-5 border-b border-amber-100 bg-gradient-to-r from-emerald-50 via-amber-50 to-white">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
-              <Sprout className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-700 to-emerald-500 text-white flex items-center justify-center font-bold shadow-md">
+              <Sprout className="w-5 h-5 text-amber-300" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">List Waste Feedstock</h2>
-              <p className="text-xs text-slate-400">Calculates CO2 savings and routes to nearby buyer</p>
+              <h3 className="font-black text-lg text-slate-900">List Organic Waste Batch</h3>
+              <p className="text-xs text-slate-500">
+                Connect directly with certified biochar & biogas conversion plants
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 text-xs">
+        {/* Content Form */}
+        <form onSubmit={handleSubmit} className="overflow-y-auto p-5 sm:p-6 space-y-5">
           {errorMessage && (
-            <div className="p-3.5 rounded-xl border border-rose-800 bg-rose-950/70 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {successNotice && (
-            <div className="p-3.5 rounded-xl border border-emerald-800 bg-emerald-950/70 text-emerald-300 text-xs flex items-center gap-2 animate-bounce">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs p-3 rounded-xl flex items-center gap-2 font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>{successNotice}</span>
             </div>
           )}
 
-          {/* Step 1: Waste Type */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-              1. Waste Category
+          {/* 1. Waste Category */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              1. Waste Category & Type
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <div
+              <button
+                type="button"
                 onClick={() => {
                   setCategory('dry_organic');
                   setSubcategoryName('Crop Residue / Stubble');
                 }}
-                className={`cursor-pointer p-3.5 rounded-2xl border text-left transition ${
+                className={`p-3.5 rounded-2xl border-2 text-left transition cursor-pointer ${
                   category === 'dry_organic'
-                    ? 'bg-emerald-950/70 border-emerald-500 text-white ring-1 ring-emerald-500'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'border-emerald-600 bg-emerald-50/70 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-slate-50'
                 }`}
               >
-                <span className="font-bold text-emerald-300 block">Dry Organic (Biochar)</span>
-                <span className="text-[11px] text-slate-400 mt-1 block">
-                  Crop straw, stalks, wood chips, husks.
-                </span>
-              </div>
+                <span className="font-bold text-sm block text-slate-900">Dry Biomass / Stubble</span>
+                <span className="text-[11px] text-slate-500">Paddy straw, bagasse, stalks & wood chips (Biochar)</span>
+              </button>
 
-              <div
+              <button
+                type="button"
                 onClick={() => {
                   setCategory('wet_organic');
-                  setSubcategoryName('Food Waste / Slurry');
+                  setSubcategoryName('Cattle Dung / Slurry');
                 }}
-                className={`cursor-pointer p-3.5 rounded-2xl border text-left transition ${
+                className={`p-3.5 rounded-2xl border-2 text-left transition cursor-pointer ${
                   category === 'wet_organic'
-                    ? 'bg-amber-950/70 border-amber-500 text-white ring-1 ring-amber-500'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'border-amber-500 bg-amber-50/70 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-slate-50'
                 }`}
               >
-                <span className="font-bold text-amber-300 block">Wet Organic (Biogas)</span>
-                <span className="text-[11px] text-slate-400 mt-1 block">
-                  Food waste, fruit peels, manure, slurry.
-                </span>
-              </div>
+                <span className="font-bold text-sm block text-slate-900">Wet / Slurry Waste</span>
+                <span className="text-[11px] text-slate-500">Cattle dung, food pulp, press-mud (Biogas & Bio-CNG)</span>
+              </button>
             </div>
+          </div>
 
+          {/* Subcategory Name */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Waste Subcategory Description
+            </label>
             <input
               type="text"
               value={subcategoryName}
               onChange={(e) => setSubcategoryName(e.target.value)}
-              placeholder="e.g. Wheat Straw Bales, Rice Husks, Fruit Mash"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 mt-2"
+              required
+              placeholder="e.g. Wheat Straw, Sugarcane Bagasse, Dairy Slurry"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
             />
           </div>
 
-          {/* Step 2: Quantity & Date */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+          {/* 2. Quantity & Expected Date */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Quantity</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Quantity</label>
               <input
                 type="number"
                 min="0.1"
                 step="0.1"
                 value={quantity}
-                onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setQuantity(Number(e.target.value))}
                 required
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
               />
             </div>
+
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Unit</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Unit</label>
               <select
                 value={unit}
-                onChange={(e) => setUnit(e.target.value as any)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                onChange={(e) => setUnit(e.target.value as WasteUnit)}
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
               >
                 <option value="ton">Metric Tons (t)</option>
+                <option value="quintal">Quintals (q)</option>
                 <option value="kg">Kilograms (kg)</option>
-                <option value="quintal">Quintals (100 kg)</option>
               </select>
             </div>
+
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Ready Date</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Ready for Pickup By</label>
               <input
                 type="date"
                 value={expectedDate}
                 onChange={(e) => setExpectedDate(e.target.value)}
                 required
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
               />
             </div>
           </div>
 
-          {/* Carbon Preview */}
-          <div className="bg-emerald-950/40 border border-emerald-500/50 p-4 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-emerald-300">🌱 Carbon Impact (IPCC Model)</span>
-              <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-900/60 px-2.5 py-0.5 rounded-full">
-                {carbon.pathway}
+          {/* Live Environmental & Market Value Card */}
+          <div className="bg-gradient-to-r from-emerald-50 to-amber-50 border-2 border-amber-200 rounded-2xl p-4 grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span className="text-slate-500 font-medium block">CO2e Sequestration Potential</span>
+              <span className="text-lg font-black text-emerald-800">
+                {carbon.totalCO2e} <span className="text-xs font-normal">Tons CO2e</span>
+              </span>
+              <span className="text-[10px] text-emerald-700 block font-semibold mt-0.5">
+                Eligible for ~{carbon.carbonCredits} Carbon Credits
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-center pt-1">
-              <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block uppercase">CO2 Prevented</span>
-                <span className="text-lg font-extrabold text-emerald-400">
-                  {carbon.totalCO2e} <span className="text-xs font-normal">Tons</span>
-                </span>
-              </div>
-              <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-400 block uppercase">Estimated Carbon Credits</span>
-                <span className="text-lg font-extrabold text-white">
-                  {carbon.carbonCredits} <span className="text-xs font-normal text-emerald-400">Credits</span>
-                </span>
-                <span className="text-[10px] font-bold text-amber-400 block mt-0.5">
-                  ~₹{carbon.estimatedMarketValueINR.toLocaleString('en-IN')} Value
-                </span>
-              </div>
+
+            <div>
+              <span className="text-slate-500 font-medium block">Baseline Economic Value</span>
+              <span className="text-lg font-black text-amber-800">
+                ₹{carbon.estimatedMarketValueINR.toLocaleString('en-IN')}
+              </span>
+              <span className="text-[10px] text-amber-700 block font-semibold mt-0.5">
+                Can be negotiated with buyer!
+              </span>
             </div>
           </div>
 
-          {/* Step 3: Location Picker with Map & Search */}
-          <div className="pt-2 border-t border-slate-800">
-            <LocationPicker
-              value={addressData}
-              onChange={setAddressData}
-              label="Pickup Location / Farm Gate"
-            />
-          </div>
-
-          {/* Step 4: Choose Registered Nearby Facility */}
-          <div className="space-y-2 pt-2 border-t border-slate-800">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-                Registered Buyers / Conversion Facilities
-              </label>
-              <span className="text-[11px] text-emerald-400 font-medium">
-                {availableProcessors.length} Facility Available
-              </span>
-            </div>
+          {/* 3. Choose Destination Processor */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Select Destination Conversion Facility</span>
+            </label>
 
             {availableProcessors.length === 0 ? (
-              <div className="bg-slate-950 border border-dashed border-slate-800 p-4 rounded-2xl text-center space-y-1">
-                <p className="text-slate-300 font-semibold">No registered buyer in database yet.</p>
-                <p className="text-[11px] text-slate-500">
-                  Your waste will be listed as "Available" in the database. Any facility can accept it!
-                </p>
-              </div>
+              <p className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-slate-200">
+                No matching verified processors in database yet. Listing will be posted to open marketplace.
+              </p>
             ) : (
               <div className="space-y-2">
                 {availableProcessors.map((proc) => (
-                  <div
+                  <label
                     key={proc.id}
-                    onClick={() => setSelectedProcessorId(proc.id)}
-                    className={`cursor-pointer p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                    className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition ${
                       selectedProcessorId === proc.id
-                        ? 'bg-emerald-950/70 border-emerald-500 ring-1 ring-emerald-500'
-                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                        ? 'border-emerald-600 bg-emerald-50/60 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-sm">{proc.full_name}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800 uppercase">
-                          {proc.facility_type || 'Processor'}
-                        </span>
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="processorSelection"
+                        checked={selectedProcessorId === proc.id}
+                        onChange={() => setSelectedProcessorId(proc.id)}
+                        className="text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <div>
+                        <p className="font-bold text-xs text-slate-900">{proc.full_name}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {proc.city ? `${proc.city}, ${proc.state}` : proc.formatted_address || 'India'}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        📍 {proc.city || proc.street_address || 'Registered Location'} · 📞 {proc.phone}
-                      </p>
                     </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-sm font-extrabold text-amber-400">
-                        ₹{proc.price_per_ton ? proc.price_per_ton.toLocaleString('en-IN') : '2,500'}
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 block">Offer Buying Rate</span>
+                      <span className="font-black text-emerald-700 text-sm">
+                        ₹{proc.price_per_ton ? proc.price_per_ton.toLocaleString('en-IN') : '2,500'}/t
                       </span>
-                      <span className="text-[10px] text-slate-400 block">/ ton offer</span>
                     </div>
-                  </div>
+                  </label>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          {/* 4. Location Picker with Interactive Map */}
+          <div className="pt-2 border-t border-slate-200">
+            <LocationPicker
+              value={addressData}
+              onChange={setAddressData}
+              label="Pickup Location & Farm Gate Coordinates"
+            />
+          </div>
+
+          {/* Footer Submit */}
+          <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-400 hover:text-white transition"
+              className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-950 transition flex items-center gap-2 disabled:opacity-50"
+              className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -337,10 +337,7 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                   <span>Saving to Supabase...</span>
                 </>
               ) : (
-                <>
-                  <Truck className="w-4 h-4" />
-                  <span>List Waste & Send Request</span>
-                </>
+                <span>Publish Listing to Marketplace</span>
               )}
             </button>
           </div>

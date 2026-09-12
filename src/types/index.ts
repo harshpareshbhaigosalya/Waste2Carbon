@@ -71,6 +71,8 @@ export interface WasteListing {
   created_at: string;
 }
 
+export type NegotiationStatus = 'none' | 'proposed' | 'countered_by_producer' | 'countered_by_processor' | 'agreed' | 'rejected';
+
 export interface PickupRequest {
   id: string;
   listing_id: string;
@@ -85,6 +87,14 @@ export interface PickupRequest {
   waste_category: WasteCategory;
   proposed_pickup_date: string;
   proposed_price_per_ton: number;
+  
+  // Price Negotiation
+  negotiation_status?: NegotiationStatus;
+  original_price_per_ton?: number;
+  counter_price_per_ton?: number;
+  last_negotiated_by?: 'producer' | 'processor';
+  negotiation_notes?: string;
+
   verification_code: string;
   status: 'pending' | 'accepted' | 'collected';
   credits_awarded?: number;

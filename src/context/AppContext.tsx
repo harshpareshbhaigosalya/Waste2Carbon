@@ -41,6 +41,10 @@ interface AppContextType {
   acceptPickupRequest: (requestId: string) => Promise<void>;
   verifyPickupHandshake: (requestId: string, enteredOtp: string) => Promise<{ success: boolean; message: string; credits?: number }>;
 
+  // Negotiation Operations
+  negotiatePrice: (requestId: string, counterPrice: number, notes?: string) => Promise<{ success: boolean; message: string }>;
+  respondToNegotiation: (requestId: string, accept: boolean) => Promise<{ success: boolean; message: string }>;
+
   // Admin & Verification Operations
   verifyProcessor: (processorId: string, verifiedStatus: boolean) => Promise<void>;
   updateUserProfile: (data: Partial<UserProfile> & { addressData?: AddressData }) => Promise<{ success: boolean; message: string }>;
@@ -495,6 +499,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (data.processor_id) {
       const proc = allUsers.find((u) => u.id === data.processor_id);
+      const initialPrice = proc?.price_per_ton || 2500;
       const newRequest: PickupRequest = {
         id: `req-${Date.now()}`,
         listing_id: newListing.id,
@@ -508,7 +513,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         quantity_tons: metrics.tons,
         waste_category: data.waste_category,
         proposed_pickup_date: data.expected_ready_date,
-        proposed_price_per_ton: proc?.price_per_ton || 2500,
+        proposed_price_per_ton: initialPrice,
+        original_price_per_ton: initialPrice,
+        negotiation_status: 'none',
         verification_code: otp,
         status: 'pending',
         credits_awarded: 0,
@@ -522,7 +529,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Waste listing saved directly to Supabase!' };
   };
 
-  // 9. Processor accepts pickup request
+  // 9. Price Negotiation: Producer or Processor submits a counter-offer
+  const negotiatePrice = async (
+    requestId: string,
+    counterPrice: number,
+    notes?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) return { success: false, message: 'Please sign in first' };
+    const req = pickupRequests.find((r) => r.id === requestId);
+    if (!req) return { success: false, message: 'Request not found' };
+
+    const isProducer = currentUser.id === req.producer_id;
+    const statusVal = isProducer ? 'countered_by_producer' : 'countered_by_processor';
+
+    const updates: Partial<PickupRequest> = {
+      counter_price_per_ton: counterPrice,
+      negotiation_status: statusVal,
+      last_negotiated_by: isProducer ? 'producer' : 'processor',
+      negotiation_notes: notes || undefined,
+    };
+
+    const { error } = await supabase.from('pickup_requests').update(updates).eq('id', requestId);
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    await refreshData();
+    return {
+      success: true,
+      message: `Counter-offer of ₹${counterPrice.toLocaleString('en-IN')}/ton sent successfully!`,
+    };
+  };
+
+  // 10. Respond to negotiation (Agree/Accept or Reject)
+  const respondToNegotiation = async (
+    requestId: string,
+    accept: boolean
+  ): Promise<{ success: boolean; message: string }> => {
+    const req = pickupRequests.find((r) => r.id === requestId);
+    if (!req) return { success: false, message: 'Request not found' };
+
+    if (accept) {
+      const finalPrice = req.counter_price_per_ton || req.proposed_price_per_ton;
+      const updates: Partial<PickupRequest> = {
+        proposed_price_per_ton: finalPrice,
+        negotiation_status: 'agreed',
+      };
+      await supabase.from('pickup_requests').update(updates).eq('id', requestId);
+    } else {
+      await supabase.from('pickup_requests').update({ negotiation_status: 'rejected' }).eq('id', requestId);
+    }
+
+    await refreshData();
+    return {
+      success: true,
+      message: accept ? 'Counter-offer agreed! Price updated.' : 'Counter-offer declined.',
+    };
+  };
+
+  // 11. Processor accepts pickup request
   const acceptPickupRequest = async (requestId: string) => {
     const req = pickupRequests.find((r) => r.id === requestId);
     if (!req) return;
@@ -626,6 +691,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addListing,
         acceptPickupRequest,
         verifyPickupHandshake,
+        negotiatePrice,
+        respondToNegotiation,
         verifyProcessor,
         updateUserProfile,
         updateProcessorPrice,

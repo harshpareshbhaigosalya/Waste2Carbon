@@ -58,262 +58,273 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Admin Header */}
-      <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 border border-indigo-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      {/* Top Banner with White - Gold - Emerald Styling */}
+      <div className="bg-gradient-to-r from-rose-900 via-rose-800 to-amber-800 rounded-3xl p-6 sm:p-8 shadow-xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="relative z-10 space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wide">
-              Administrator Hub · Verification Authority
+            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-950 text-rose-200 border border-rose-600 shadow-sm">
+              Root Administration
             </span>
-            <span className="text-xs text-slate-400">· admin@gmail.com</span>
+            <span className="text-xs text-rose-200 font-medium">
+              · System Controller & Regulatory Review
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1.5 flex items-center gap-2">
-            <span>W2C Platform Administration</span>
+          <h1 className="text-2xl sm:text-3xl font-black text-white">
+            W2C National Registry Admin
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-            Inspect processor compliance documents, approve industrial facilities, and monitor circular carbon transactions.
+          <p className="text-xs sm:text-sm text-rose-100/90 max-w-xl">
+            Review and approve biomass conversion facilities, inspect compliance documents, and monitor national carbon sequestration ledger.
           </p>
         </div>
 
-        <button
-          onClick={handleRefresh}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition shrink-0"
-        >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
-          <span>Refresh Database</span>
-        </button>
+        <div className="relative z-10 flex items-center gap-3 shrink-0">
+          <button
+            onClick={handleRefresh}
+            title="Refresh database"
+            className="p-3 rounded-2xl bg-black/20 hover:bg-black/30 text-rose-200 border border-rose-500/30 transition"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-white' : ''}`} />
+          </button>
+          <div className="bg-white text-slate-900 rounded-2xl px-5 py-3 text-right shadow-lg shrink-0">
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold block">
+              Pending Approvals
+            </span>
+            <span className="text-2xl font-black text-amber-700">
+              {pendingProcessors.length}
+            </span>
+            <span className="text-xs text-slate-500"> Facilities</span>
+          </div>
+        </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards in Clean White / Gold Style */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Pending Verifications</span>
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-semibold">Total Waste Diverted</span>
+            <Scale className="w-4 h-4 text-emerald-700" />
           </div>
-          <p className="text-2xl font-black text-amber-400 mt-2">
-            {pendingProcessors.length}{' '}
-            <span className="text-xs font-normal text-slate-400">Facilities</span>
+          <p className="text-2xl font-black text-slate-900 mt-2">
+            {totalDiverted.toLocaleString('en-IN')} <span className="text-xs text-slate-500 font-normal">Tons</span>
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Require document review</p>
+          <p className="text-[11px] text-emerald-700 mt-0.5 font-medium">Diverted from open burning / landfills</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Verified Facilities</span>
-            <Factory className="w-4 h-4 text-emerald-400" />
+        <div className="bg-white border border-amber-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between text-amber-800">
+            <span className="text-xs font-semibold">Carbon Credits Issued</span>
+            <Award className="w-4 h-4 text-amber-600" />
           </div>
-          <p className="text-2xl font-black text-emerald-400 mt-2">
-            {verifiedProcessors.length}{' '}
-            <span className="text-xs font-normal text-slate-400">Approved</span>
+          <p className="text-2xl font-black text-emerald-700 mt-2">
+            {totalCredits.toLocaleString('en-IN')} <span className="text-xs text-slate-500 font-normal">tCO2e</span>
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Active buyers in marketplace</p>
+          <p className="text-[11px] text-amber-700 mt-0.5 font-medium">₹2,500/t standard standard MRV</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Registered Producers</span>
-            <Sprout className="w-4 h-4 text-sky-400" />
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-semibold">Total Economic Value</span>
+            <DollarSign className="w-4 h-4 text-emerald-700" />
           </div>
-          <p className="text-2xl font-black text-sky-400 mt-2">
-            {producers.length}{' '}
-            <span className="text-xs font-normal text-slate-400">Farmers/Generators</span>
+          <p className="text-2xl font-black text-slate-900 mt-2">
+            ₹{totalValueINR.toLocaleString('en-IN')}
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Supply pipeline</p>
+          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Generated for Indian rural economy</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Carbon Credits Issued</span>
-            <Award className="w-4 h-4 text-indigo-400" />
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-semibold">Platform Ecosystem</span>
+            <Users className="w-4 h-4 text-sky-700" />
           </div>
-          <p className="text-2xl font-black text-indigo-400 mt-2">
-            {totalCredits.toFixed(1)}{' '}
-            <span className="text-xs font-normal text-slate-400">tCO2e</span>
+          <p className="text-2xl font-black text-slate-900 mt-2">
+            {allUsers.length} <span className="text-xs text-slate-500 font-normal">Entities</span>
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">~₹{totalValueINR.toLocaleString('en-IN')} Value</p>
+          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+            {producers.length} Producers · {allUsers.filter((u) => u.role === 'processor').length} Processors
+          </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-          <button
-            onClick={() => setActiveTab('verifications')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'verifications'
-                ? 'bg-amber-600 text-white shadow-md'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <ShieldAlert className="w-4 h-4" />
-            <span>Facility Verifications Queue ({pendingProcessors.length})</span>
-          </button>
+      <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200 max-w-md">
+        <button
+          onClick={() => setActiveTab('verifications')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+            activeTab === 'verifications'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+          <span>Verifications ({pendingProcessors.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('directory')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+            activeTab === 'directory'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5 text-emerald-700" />
+          <span>Entity Directory ({allUsers.length})</span>
+        </button>
+      </div>
 
-          <button
-            onClick={() => setActiveTab('directory')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'directory'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Platform User Directory ({allUsers.length})</span>
-          </button>
+      {/* Tab 1: Verification Queue */}
+      {activeTab === 'verifications' && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-amber-600" />
+              <span>Conversion Facility Compliance Review Queue</span>
+            </h2>
+            <span className="text-xs text-slate-500">
+              Only verified facilities can accept feedstock from farmers
+            </span>
+          </div>
 
-          <button
-            onClick={() => setActiveTab('activity')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'activity'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>All Waste Batches & Pickups</span>
-          </button>
-        </div>
+          {pendingProcessors.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 space-y-2">
+              <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-600 opacity-60" />
+              <p className="text-sm font-semibold text-slate-700">All conversion facilities are verified!</p>
+              <p className="text-xs text-slate-500">No pending compliance review requests in Supabase.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pendingProcessors.map((proc) => (
+                <div
+                  key={proc.id}
+                  className="bg-[#fcfbf7] border-2 border-amber-300 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-sm"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                        {proc.facility_type === 'biochar' ? 'Biochar Pyrolysis' : 'Biogas Digester'}
+                      </span>
+                      <h3 className="font-bold text-base text-slate-900">{proc.full_name}</h3>
+                      <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                        Pending Admin Action
+                      </span>
+                    </div>
 
-        {/* Tab 1: Pending Verifications Queue */}
-        {activeTab === 'verifications' && (
-          <div className="space-y-4">
-            {pendingProcessors.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 space-y-2">
-                <ShieldCheck className="w-12 h-12 text-emerald-500/50 mx-auto" />
-                <h3 className="text-sm font-bold text-white">All Facility Applications Verified!</h3>
-                <p className="text-xs text-slate-400">
-                  There are no pending processor accounts waiting for compliance verification.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {pendingProcessors.map((proc) => (
-                  <div
-                    key={proc.id}
-                    className="bg-slate-950 border border-amber-500/40 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-                        <h3 className="text-base font-extrabold text-white">{proc.full_name}</h3>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 uppercase">
-                          Pending Review
-                        </span>
-                        <span className="text-xs text-slate-400 capitalize">
-                          · {proc.facility_type === 'biochar' ? 'Biochar Pyrolysis' : 'Biogas Digester'}
-                        </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{proc.phone || 'No phone'}</span>
                       </div>
-
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300">
-                        <span className="flex items-center gap-1">
-                          <Phone className="w-3.5 h-3.5 text-slate-500" />
-                          {proc.phone}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                          {proc.formatted_address || `${proc.city}, ${proc.state}`}
-                        </span>
-                        <span className="text-amber-400 font-bold">
-                          Buying Offer: ₹{proc.price_per_ton ? proc.price_per_ton.toLocaleString('en-IN') : '2,500'} / ton
-                        </span>
-                      </div>
-
-                      {/* Submitted Verification Document Box */}
-                      <div className="bg-slate-900 border border-slate-800 p-3.5 rounded-xl text-xs space-y-1 mt-1 max-w-xl">
-                        <div className="flex items-center gap-2 text-slate-200 font-bold">
-                          <FileText className="w-4 h-4 text-emerald-400" />
-                          <span>{proc.document_type || 'State Pollution Control Board (SPCB) CTO License'}</span>
-                        </div>
-                        <p className="text-slate-400 text-[11px]">
-                          Registration / License Number: <strong className="text-amber-300 font-mono">{proc.document_number || 'N/A'}</strong>
-                        </p>
-                        {proc.document_name && (
-                          <p className="text-slate-400 text-[11px]">
-                            Attached Document: <span className="text-emerald-400 underline">{proc.document_name}</span>
-                          </p>
-                        )}
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="truncate">{proc.formatted_address || `${proc.city}, ${proc.state}`}</span>
                       </div>
                     </div>
 
-                    {/* Admin Action Buttons */}
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <button
-                        onClick={() => handleReject(proc.id)}
-                        className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-400 border border-slate-800 text-xs font-bold transition flex items-center gap-1.5"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span>Reject</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleApprove(proc.id)}
-                        className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-950 transition flex items-center gap-1.5"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Approve & Verify Facility</span>
-                      </button>
+                    {/* Document details */}
+                    <div className="bg-white border border-amber-200 rounded-xl p-3 text-xs space-y-1">
+                      <div className="flex items-center gap-2 font-bold text-slate-800">
+                        <FileText className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Document: {proc.document_type || 'SPCB Consent to Operate'}</span>
+                      </div>
+                      <p className="text-slate-600">
+                        License No: <strong className="text-slate-900">{proc.document_number || 'N/A'}</strong>
+                      </p>
+                      {proc.document_name && (
+                        <p className="text-slate-500 text-[11px]">
+                          Attached file: <code>{proc.document_name}</code>
+                        </p>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* Tab 2: All Users Directory */}
-        {activeTab === 'directory' && (
+                  {/* Actions */}
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <button
+                      onClick={() => handleReject(proc.id)}
+                      className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-rose-700 border border-slate-300 text-xs font-bold transition flex items-center gap-1.5"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      <span>Reject</span>
+                    </button>
+                    <button
+                      onClick={() => handleApprove(proc.id)}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black shadow transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Approve & Verify Facility</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 2: Entity Directory */}
+      {activeTab === 'directory' && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <h2 className="text-base font-black text-slate-900">Registered Platform Entities</h2>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
                 <tr>
-                  <th className="p-3">Organization / Name</th>
-                  <th className="p-3">Role</th>
-                  <th className="p-3">Email & Phone</th>
-                  <th className="p-3">Location</th>
-                  <th className="p-3">Verification Status</th>
-                  <th className="p-3 text-right">Toggle Status</th>
+                  <th className="py-3 px-3">Entity Name</th>
+                  <th className="py-3 px-3">Role</th>
+                  <th className="py-3 px-3">Location</th>
+                  <th className="py-3 px-3">Status</th>
+                  <th className="py-3 px-3">Credits</th>
+                  <th className="py-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-slate-100">
                 {allUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-950/40">
-                    <td className="p-3 font-bold text-white">{u.full_name}</td>
-                    <td className="p-3 capitalize">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        u.role === 'admin'
-                          ? 'bg-indigo-950 text-indigo-300 border border-indigo-800'
-                          : u.role === 'processor'
-                          ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                          : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                      }`}>
+                  <tr key={u.id} className="hover:bg-slate-50 transition">
+                    <td className="py-3.5 px-3">
+                      <div className="font-bold text-slate-900">{u.full_name}</div>
+                      <div className="text-[11px] text-slate-500">{u.email}</div>
+                    </td>
+                    <td className="py-3.5 px-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          u.role === 'admin'
+                            ? 'bg-rose-100 text-rose-800'
+                            : u.role === 'processor'
+                            ? 'bg-amber-100 text-amber-900'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
                         {u.role}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-400">
-                      <div>{u.email}</div>
-                      <div>{u.phone}</div>
+                    <td className="py-3.5 px-3 text-slate-600">
+                      {u.city ? `${u.city}, ${u.state}` : u.formatted_address || 'India'}
                     </td>
-                    <td className="p-3 text-slate-300">{u.city ? `${u.city}, ${u.state}` : 'N/A'}</td>
-                    <td className="p-3">
-                      {u.verified ? (
-                        <span className="text-emerald-400 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Verified
-                        </span>
+                    <td className="py-3.5 px-3">
+                      {u.role === 'processor' ? (
+                        u.verified ? (
+                          <span className="text-emerald-700 font-bold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                          </span>
+                        ) : (
+                          <span className="text-amber-700 font-bold">Pending Review</span>
+                        )
                       ) : (
-                        <span className="text-amber-400 font-bold flex items-center gap-1">
-                          <ShieldAlert className="w-3.5 h-3.5" /> Pending
-                        </span>
+                        <span className="text-slate-600 font-medium">Active</span>
                       )}
                     </td>
-                    <td className="p-3 text-right">
+                    <td className="py-3.5 px-3 font-bold text-slate-800">
+                      {u.carbon_credits_balance || 0}
+                    </td>
+                    <td className="py-3.5 px-3 text-right">
                       {u.role === 'processor' && (
                         <button
                           onClick={() => verifyProcessor(u.id, !u.verified)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition ${
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition ${
                             u.verified
-                              ? 'bg-slate-900 text-rose-400 border-slate-800 hover:border-rose-800'
-                              : 'bg-emerald-950 text-emerald-300 border-emerald-800 hover:bg-emerald-900'
+                              ? 'text-rose-700 border-rose-300 hover:bg-rose-50'
+                              : 'text-emerald-700 border-emerald-300 hover:bg-emerald-50'
                           }`}
                         >
                           {u.verified ? 'Revoke' : 'Verify'}
@@ -325,31 +336,8 @@ export const AdminDashboard: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
-
-        {/* Tab 3: All Listings & Transactions */}
-        {activeTab === 'activity' && (
-          <div className="space-y-3">
-            {listings.length === 0 ? (
-              <p className="py-12 text-center text-slate-500 text-xs">No waste listings in Supabase yet.</p>
-            ) : (
-              listings.map((l) => (
-                <div key={l.id} className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-white text-sm block">{l.title}</span>
-                    <span className="text-slate-400">
-                      Generator: {l.producer_name} · Buyer: {l.assigned_processor_name || 'Open'} · Status: {l.status}
-                    </span>
-                  </div>
-                  <span className="font-mono font-bold text-amber-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
-                    OTP: {l.verification_otp}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
