@@ -559,7 +559,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       created_at: new Date().toISOString(),
     };
 
-    const { error: listErr } = await supabase.from('waste_listings').insert([newListing]);
+    const insertPayload: any = { ...newListing };
+    let { error: listErr } = await supabase.from('waste_listings').insert([insertPayload]);
+    if (listErr && (listErr.message.includes('column') || listErr.message.includes('schema cache'))) {
+      console.warn("Retrying waste_listings insert without new quality columns:", listErr.message);
+      const { photo_url, quality_grade, quality_notes, ...fallbackListing } = insertPayload;
+      const retry = await supabase.from('waste_listings').insert([fallbackListing]);
+      listErr = retry.error;
+    }
+
     if (listErr) {
       return { success: false, message: `Database error: ${listErr.message}` };
     }
@@ -604,7 +612,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         created_at: new Date().toISOString(),
       };
 
-      await supabase.from('pickup_requests').insert([newRequest]);
+      const reqPayload: any = { ...newRequest };
+      let { error: reqErr } = await supabase.from('pickup_requests').insert([reqPayload]);
+      if (reqErr && (reqErr.message.includes('column') || reqErr.message.includes('schema cache'))) {
+        console.warn("Retrying pickup_requests insert without new columns:", reqErr.message);
+        const { listing_photo_url, quality_grade, negotiation_messages, ...fallbackReq } = reqPayload;
+        await supabase.from('pickup_requests').insert([fallbackReq]);
+      }
     }
 
     await refreshData();
@@ -655,7 +669,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updates.counter_price_per_ton = counterPrice;
     }
 
-    const { error } = await supabase.from('pickup_requests').update(updates).eq('id', requestId);
+    let { error } = await supabase.from('pickup_requests').update(updates).eq('id', requestId);
+    if (error && (error.message.includes('column') || error.message.includes('schema cache'))) {
+      console.warn('Retrying update without negotiation_messages column:', error.message);
+      const { negotiation_messages, ...fallbackUpdates } = updates;
+      const retry = await supabase.from('pickup_requests').update(fallbackUpdates).eq('id', requestId);
+      error = retry.error;
+    }
+
     if (error) {
       return { success: false, message: error.message };
     }
@@ -714,7 +735,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         negotiation_status: 'agreed',
         negotiation_messages: currentMessages,
       };
-      await supabase.from('pickup_requests').update(updates).eq('id', requestId);
+
+      let { error } = await supabase.from('pickup_requests').update(updates).eq('id', requestId);
+      if (error && (error.message.includes('column') || error.message.includes('schema cache'))) {
+        const { negotiation_messages, ...fallbackUpdates } = updates;
+        await supabase.from('pickup_requests').update(fallbackUpdates).eq('id', requestId);
+      }
     } else {
       const declineMsg: NegotiationMessage = {
         id: `msg-${Date.now()}`,
@@ -726,13 +752,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       currentMessages.push(declineMsg);
 
-      await supabase
-        .from('pickup_requests')
-        .update({
-          negotiation_status: 'rejected',
-          negotiation_messages: currentMessages,
-        })
-        .eq('id', requestId);
+      const updates: any = {
+        negotiation_status: 'rejected',
+        negotiation_messages: currentMessages,
+      };
+
+      let { error } = await supabase.from('pickup_requests').update(updates).eq('id', requestId);
+      if (error && (error.message.includes('column') || error.message.includes('schema cache'))) {
+        const { negotiation_messages, ...fallbackUpdates } = updates;
+        await supabase.from('pickup_requests').update(fallbackUpdates).eq('id', requestId);
+      }
     }
 
     await refreshData();
@@ -794,7 +823,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       created_at: new Date().toISOString(),
     };
 
-    const { error: reqErr } = await supabase.from('pickup_requests').insert([newRequest]);
+    const reqPayload: any = { ...newRequest };
+    let { error: reqErr } = await supabase.from('pickup_requests').insert([reqPayload]);
+    if (reqErr && (reqErr.message.includes('column') || reqErr.message.includes('schema cache'))) {
+      console.warn('Retrying pickup_requests insert without new columns:', reqErr.message);
+      const { listing_photo_url, quality_grade, negotiation_messages, ...fallbackReq } = reqPayload;
+      const retry = await supabase.from('pickup_requests').insert([fallbackReq]);
+      reqErr = retry.error;
+    }
+
     if (reqErr) {
       return { success: false, message: `Database error: ${reqErr.message}` };
     }
