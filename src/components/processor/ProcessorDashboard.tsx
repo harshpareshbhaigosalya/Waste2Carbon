@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Factory, Truck, CheckCircle2, Award, Phone, MapPin, KeyRound, FileCheck, DollarSign } from 'lucide-react';
+import { Factory, Truck, CheckCircle2, Award, Phone, MapPin, KeyRound, FileCheck, DollarSign, RefreshCw } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { PickupRequest } from '../../types';
 
@@ -15,15 +15,23 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
     verifyPickupHandshake,
     ledger,
     setSelectedCertificate,
+    refreshData,
   } = useApp();
 
   const [activeHandshakeReq, setActiveHandshakeReq] = useState<PickupRequest | null>(null);
   const [enteredOtp, setEnteredOtp] = useState('');
   const [handshakeError, setHandshakeError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Requests for this processor
   const myRequests = pickupRequests.filter((r) => r.processor_id === currentUser?.id);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshData();
+    setIsRefreshing(false);
+  };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,22 +60,33 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800 uppercase">
               {currentUser?.facility_type === 'biochar' ? 'Biochar Pyrolysis Plant' : 'Biogas Digester Plant'}
             </span>
-            <span className="text-xs text-slate-400">· {currentUser?.address}</span>
+            <span className="text-xs text-slate-400">
+              · {currentUser?.city ? `${currentUser.city}, ${currentUser.state}` : currentUser?.formatted_address || 'Registered Facility'}
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
             {currentUser?.full_name}
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Accept organic feedstock from nearby generators and convert it into carbon credits.
+            Accept organic feedstock from nearby generators and convert it into verified carbon credits.
           </p>
         </div>
 
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl px-5 py-3 text-right shrink-0">
-          <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-medium">
-            Your Buying Price
-          </span>
-          <span className="text-2xl font-black text-amber-400">${currentUser?.price_per_ton || 45}</span>
-          <span className="text-xs text-slate-400"> / ton</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            title="Refresh database"
+            className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
+          </button>
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl px-5 py-3 text-right shrink-0">
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-medium">
+              Your Buying Offer
+            </span>
+            <span className="text-2xl font-black text-amber-400">${currentUser?.price_per_ton || 45}</span>
+            <span className="text-xs text-slate-400"> / ton</span>
+          </div>
         </div>
       </div>
 
@@ -79,7 +98,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
             {myRequests.filter((r) => r.status === 'pending').length}{' '}
             <span className="text-xs text-slate-400 font-normal">Pending</span>
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Awaiting your approval</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">In Supabase queue</p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
@@ -108,9 +127,9 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
         {myRequests.length === 0 ? (
           <div className="py-12 text-center text-slate-500 space-y-2">
             <Truck className="w-10 h-10 mx-auto opacity-30" />
-            <p className="text-sm">No incoming waste requests yet.</p>
+            <p className="text-sm">No incoming waste requests in database yet.</p>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              When a nearby farmer or waste producer creates a listing and chooses your facility, their pickup request will appear right here!
+              When a nearby farmer lists waste and selects your facility, their request will appear here in real time!
             </p>
           </div>
         ) : (
@@ -167,7 +186,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
                         setEnteredOtp('');
                         setHandshakeError('');
                       }}
-                      className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-amber-950 transition flex items-center gap-1.5 animate-pulse-slow"
+                      className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-amber-950 transition flex items-center gap-1.5"
                     >
                       <KeyRound className="w-4 h-4" />
                       <span>Enter 6-Digit Pickup Code (OTP)</span>
@@ -203,7 +222,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
               <span>Verify Pickup Handshake</span>
             </h3>
             <p className="text-xs text-slate-400">
-              Ask <strong>{activeHandshakeReq.producer_name}</strong> for the 6-digit code displayed on their screen to confirm pickup.
+              Ask <strong>{activeHandshakeReq.producer_name}</strong> for the 6-digit code displayed on their screen to confirm delivery in Supabase.
             </p>
 
             <form onSubmit={handleVerify} className="space-y-4">
@@ -241,7 +260,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
                   disabled={isVerifying || enteredOtp.length < 6}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-950 transition disabled:opacity-50"
                 >
-                  {isVerifying ? 'Verifying...' : 'Confirm Delivery & Mint Credits'}
+                  {isVerifying ? 'Verifying in Supabase...' : 'Confirm Delivery & Mint Credits'}
                 </button>
               </div>
             </form>

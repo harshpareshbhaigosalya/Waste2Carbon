@@ -18,19 +18,20 @@ export interface UserProfile {
   full_name: string;
   phone: string;
   role: UserRole;
-  entity_type: EntityType;
-  address: string;
-  latitude: number;
-  longitude: number;
+  entity_type: string;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  formatted_address?: string;
+  latitude?: number;
+  longitude?: number;
   onboarded: boolean;
-  verified: boolean;
+  facility_type?: string;
+  price_per_ton?: number;
   carbon_credits_balance: number;
-  // Processor-specific details if role is 'processor'
-  facility_type?: 'biochar' | 'biogas';
-  price_per_ton?: number; // Offered buying price
-  accepted_categories?: WasteCategory[];
-  capacity_tons_per_month?: number;
-  rating?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface WasteListing {
@@ -45,7 +46,11 @@ export interface WasteListing {
   unit: WasteUnit;
   quantity_in_tons: number;
   expected_ready_date: string;
-  location_address: string;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  formatted_address: string;
   latitude: number;
   longitude: number;
   estimated_co2_sequestered: number;
@@ -53,7 +58,7 @@ export interface WasteListing {
   status: 'available' | 'requested' | 'accepted' | 'collected';
   assigned_processor_id?: string;
   assigned_processor_name?: string;
-  verification_otp: string; // 6-digit handshake code
+  verification_otp: string;
   created_at: string;
 }
 
@@ -81,11 +86,21 @@ export interface CarbonLedgerEntry {
   id: string;
   user_id: string;
   user_name: string;
-  user_role: UserRole;
+  user_role: string;
   request_id: string;
   amount_credits: number;
   waste_type: string;
   tons_diverted: number;
   certificate_code: string;
   created_at: string;
+}
+
+export interface AddressData {
+  street_address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  formatted_address: string;
+  latitude: number;
+  longitude: number;
 }

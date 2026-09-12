@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Leaf, LogIn, UserPlus, Mail, Lock, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Leaf, LogIn, UserPlus, Mail, Lock, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const AuthScreen: React.FC = () => {
@@ -8,29 +8,31 @@ export const AuthScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [notification, setNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [verificationModal, setVerificationModal] = useState<{ open: boolean; email: string; requiresVerification: boolean } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setNotification(null);
+    setErrorMessage('');
     setIsLoading(true);
 
     if (isRegister) {
       const res = await registerAccount(email, password);
       setIsLoading(false);
       if (res.success) {
-        setNotification({
-          type: 'success',
-          text: res.message,
+        setVerificationModal({
+          open: true,
+          email,
+          requiresVerification: !!res.requiresVerification,
         });
       } else {
-        setNotification({ type: 'error', text: res.message });
+        setErrorMessage(res.message);
       }
     } else {
       const res = await loginAccount(email, password);
       setIsLoading(false);
       if (!res.success) {
-        setNotification({ type: 'error', text: res.message });
+        setErrorMessage(res.message);
       }
     }
   };
@@ -43,12 +45,12 @@ export const AuthScreen: React.FC = () => {
       <div className="w-full max-w-md relative z-10 space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500 text-slate-950 shadow-xl shadow-emerald-500/20 font-bold mb-2">
-            <Leaf className="w-6 h-6" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500 text-slate-950 shadow-xl shadow-emerald-500/20 font-bold mb-2">
+            <Leaf className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">W2C | Waste to Carbon</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">W2C | Waste to Carbon</h1>
           <p className="text-xs text-slate-400 max-w-xs mx-auto">
-            Connect waste generators with conversion plants and earn certified carbon credits.
+            Direct marketplace connecting organic waste generators with biochar & biogas conversion plants.
           </p>
         </div>
 
@@ -60,7 +62,7 @@ export const AuthScreen: React.FC = () => {
               type="button"
               onClick={() => {
                 setIsRegister(true);
-                setNotification(null);
+                setErrorMessage('');
               }}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
                 isRegister
@@ -74,7 +76,7 @@ export const AuthScreen: React.FC = () => {
               type="button"
               onClick={() => {
                 setIsRegister(false);
-                setNotification(null);
+                setErrorMessage('');
               }}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
                 !isRegister
@@ -86,21 +88,11 @@ export const AuthScreen: React.FC = () => {
             </button>
           </div>
 
-          {/* Alert Message */}
-          {notification && (
-            <div
-              className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
-                notification.type === 'success'
-                  ? 'bg-emerald-950/70 border-emerald-800 text-emerald-300'
-                  : 'bg-rose-950/70 border-rose-800 text-rose-300'
-              }`}
-            >
-              {notification.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
-              ) : (
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
-              )}
-              <span className="leading-relaxed">{notification.text}</span>
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="p-3.5 rounded-xl border border-rose-800 bg-rose-950/70 text-rose-300 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+              <span className="leading-relaxed">{errorMessage}</span>
             </div>
           )}
 
@@ -143,25 +135,26 @@ export const AuthScreen: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-950 transition flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-950 transition flex items-center justify-center gap-2 text-sm disabled:opacity-50 mt-1"
             >
-              <span>{isLoading ? 'Processing...' : isRegister ? 'Create Account & Continue' : 'Sign In to Dashboard'}</span>
+              <span>{isLoading ? 'Processing...' : isRegister ? 'Register & Verify Email' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Quick Account Switcher if accounts already exist on machine */}
+          {/* Quick Switch to existing Supabase users if created */}
           {allUsers.length > 0 && (
             <div className="pt-3 border-t border-slate-800 text-center space-y-2">
-              <span className="text-[11px] text-slate-500 font-medium block">
-                Accounts created on this device:
+              <span className="text-[11px] text-slate-400 font-semibold flex items-center justify-center gap-1">
+                <RefreshCw className="w-3 h-3 text-emerald-400" />
+                <span>Existing Database Profiles:</span>
               </span>
-              <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
                 {allUsers.map((u) => (
                   <button
                     key={u.id}
                     onClick={() => switchUser(u.id)}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border border-slate-700 transition"
+                    className="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 text-[11px] font-semibold text-emerald-300 border border-slate-800 transition"
                   >
                     {u.full_name} ({u.role})
                   </button>
@@ -171,6 +164,44 @@ export const AuthScreen: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Explicit Registration Confirmation Modal */}
+      {verificationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md bg-slate-900 border border-emerald-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-5 text-center">
+            <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40 animate-bounce">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-bold text-white">Registration Successful!</h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Your account for <strong className="text-emerald-400">{verificationModal.email}</strong> has been registered in the Supabase database.
+              </p>
+            </div>
+
+            <div className="bg-slate-950 border border-slate-800 p-4 rounded-2xl text-xs text-left space-y-2">
+              <div className="flex items-start gap-2 text-slate-300">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Email Verification:</strong> A verification link was dispatched by Supabase. Please check your inbox / spam folder.
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 pl-6">
+                Next, proceed to complete your one-time onboarding profile (Business Name, Phone Number, and Address).
+              </p>
+            </div>
+
+            <button
+              onClick={() => setVerificationModal(null)}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-950 transition text-sm flex items-center justify-center gap-2"
+            >
+              <span>Continue to Profile Onboarding</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Award, Scale, Clock, CheckCircle2, Truck, Calendar, MapPin, FileCheck } from 'lucide-react';
+import { Plus, Award, Scale, Clock, CheckCircle2, Truck, Calendar, MapPin, FileCheck, RefreshCw } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AddWasteModal } from './AddWasteModal';
 
@@ -8,8 +8,9 @@ interface ProducerDashboardProps {
 }
 
 export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCertificate }) => {
-  const { currentUser, listings, pickupRequests, ledger, setSelectedCertificate } = useApp();
+  const { currentUser, listings, pickupRequests, ledger, setSelectedCertificate, refreshData } = useApp();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Listings for this producer
   const myListings = listings.filter((l) => l.producer_id === currentUser?.id);
@@ -23,6 +24,12 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCert
     .filter((l) => l.status === 'collected')
     .reduce((acc, curr) => acc + curr.quantity_in_tons, 0);
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshData();
+    setIsRefreshing(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Banner */}
@@ -32,7 +39,9 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCert
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 uppercase">
               Waste Producer Portal
             </span>
-            <span className="text-xs text-slate-400">· {currentUser?.address || 'Local Region'}</span>
+            <span className="text-xs text-slate-400">
+              · {currentUser?.city ? `${currentUser.city}, ${currentUser.state}` : currentUser?.formatted_address || 'Registered Location'}
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
             {currentUser?.full_name}
@@ -42,13 +51,22 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCert
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-2xl shadow-xl shadow-emerald-950 transition shrink-0"
-        >
-          <Plus className="w-5 h-5" />
-          <span>+ Add Waste Listing</span>
-        </button>
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            onClick={handleRefresh}
+            title="Refresh database"
+            className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
+          </button>
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-2xl shadow-xl shadow-emerald-950 transition"
+          >
+            <Plus className="w-5 h-5" />
+            <span>+ List Waste Batch</span>
+          </button>
+        </div>
       </div>
 
       {/* Prominent Physical Handshake Code Card */}
@@ -108,7 +126,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCert
           <p className="text-2xl font-black text-sky-400 mt-1">
             {myListings.length} <span className="text-xs text-slate-400 font-normal">Batches</span>
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Ready or in transit</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Saved in Supabase</p>
         </div>
       </div>
 
@@ -168,6 +186,11 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCert
                       {listing.verification_otp}
                     </span>
                   </div>
+                </div>
+
+                <div className="text-xs text-slate-400 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span className="truncate">{listing.formatted_address || `${listing.city}, ${listing.state}`}</span>
                 </div>
 
                 {listing.assigned_processor_name && (

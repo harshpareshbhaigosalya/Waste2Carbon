@@ -5,7 +5,7 @@ import {
   WasteListing,
   PickupRequest,
   CarbonLedgerEntry,
-  UserRole,
+  AddressData,
 } from '../types';
 import { calculateCarbonMetrics } from '../lib/carbonCalculator';
 import { supabase } from '../lib/supabase';
@@ -16,15 +16,17 @@ interface AppContextType {
   listings: WasteListing[];
   pickupRequests: PickupRequest[];
   ledger: CarbonLedgerEntry[];
+  isLoading: boolean;
   
-  // Auth & Onboarding Flow
+  // Auth & Onboarding
   registerAccount: (email: string, pass: string) => Promise<{ success: boolean; message: string; requiresVerification?: boolean }>;
   loginAccount: (email: string, pass: string) => Promise<{ success: boolean; message: string }>;
-  completeOnboarding: (data: Partial<UserProfile>) => Promise<void>;
+  completeOnboarding: (data: Partial<UserProfile> & { addressData?: AddressData }) => Promise<{ success: boolean; message: string }>;
+  signOut: () => Promise<void>;
   switchUser: (userId: string) => void;
-  signOut: () => void;
+  refreshData: () => Promise<void>;
 
-  // Waste & Selling Flow
+  // Waste Listings & Handshake
   addListing: (data: {
     title: string;
     waste_category: 'dry_organic' | 'wet_organic';
@@ -32,233 +34,268 @@ interface AppContextType {
     quantity: number;
     unit: 'ton' | 'kg' | 'quintal';
     expected_ready_date: string;
-    location_address: string;
+    addressData: AddressData;
     processor_id?: string;
-  }) => Promise<WasteListing>;
-  
+  }) => Promise<{ success: boolean; message: string }>;
+
   acceptPickupRequest: (requestId: string) => Promise<void>;
   verifyPickupHandshake: (requestId: string, enteredOtp: string) => Promise<{ success: boolean; message: string; credits?: number }>;
-  
-  // Active certificate modal state
+
+  // Certificate Modal State
   selectedCertificate: CarbonLedgerEntry | null;
   setSelectedCertificate: (cert: CarbonLedgerEntry | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const KEYS = {
-  CURRENT_USER: 'w2c_clean_user',
-  ALL_USERS: 'w2c_clean_all_users',
-  LISTINGS: 'w2c_clean_listings',
-  REQUESTS: 'w2c_clean_requests',
-  LEDGER: 'w2c_clean_ledger',
-};
-
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem(KEYS.CURRENT_USER);
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const [allUsers, setAllUsers] = useState<UserProfile[]>(() => {
-    const saved = localStorage.getItem(KEYS.ALL_USERS);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [listings, setListings] = useState<WasteListing[]>(() => {
-    const saved = localStorage.getItem(KEYS.LISTINGS);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [pickupRequests, setPickupRequests] = useState<PickupRequest[]>(() => {
-    const saved = localStorage.getItem(KEYS.REQUESTS);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [ledger, setLedger] = useState<CarbonLedgerEntry[]>(() => {
-    const saved = localStorage.getItem(KEYS.LEDGER);
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  const [listings, setListings] = useState<WasteListing[]>([]);
+  const [pickupRequests, setPickupRequests] = useState<PickupRequest[]>([]);
+  const [ledger, setLedger] = useState<CarbonLedgerEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCertificate, setSelectedCertificate] = useState<CarbonLedgerEntry | null>(null);
 
-  // Sync to local storage
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem(KEYS.CURRENT_USER);
+  // 1. Fetch all data directly from Supabase tables
+  const refreshData = async () => {
+    try {
+      // Fetch profiles
+      const { data: profilesData } = await supabase.from('profiles').select('*');
+      if (profilesData) {
+        setAllUsers(profilesData);
+        // If logged in user, refresh their profile state
+        if (currentUser) {
+          const fresh = profilesData.find((p) => p.id === currentUser.id);
+          if (fresh) setCurrentUser(fresh);
+        }
+      }
+
+      // Fetch waste listings
+      const { data: listingsData } = await supabase
+        .from('waste_listings')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (listingsData) {
+        setListings(listingsData);
+      }
+
+      // Fetch pickup requests
+      const { data: requestsData } = await supabase
+        .from('pickup_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (requestsData) {
+        setPickupRequests(requestsData);
+      }
+
+      // Fetch carbon ledger
+      const { data: ledgerData } = await supabase
+        .from('carbon_ledger')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (ledgerData) {
+        setLedger(ledgerData);
+      }
+    } catch (e) {
+      console.error('Error fetching data from Supabase:', e);
+    } finally {
+      setIsLoading(false);
     }
-  }, [currentUser]);
+  };
 
+  // Initial load & check Supabase Auth session
   useEffect(() => {
-    localStorage.setItem(KEYS.ALL_USERS, JSON.stringify(allUsers));
-  }, [allUsers]);
+    const initAuth = async () => {
+      setIsLoading(true);
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const authUser = sessionData?.session?.user;
 
-  useEffect(() => {
-    localStorage.setItem(KEYS.LISTINGS, JSON.stringify(listings));
-  }, [listings]);
+        if (authUser) {
+          // Fetch user profile from Supabase
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .maybeSingle();
 
-  useEffect(() => {
-    localStorage.setItem(KEYS.REQUESTS, JSON.stringify(pickupRequests));
-  }, [pickupRequests]);
+          if (profile) {
+            setCurrentUser(profile);
+          } else {
+            // User registered in auth but profile record pending
+            const placeholder: UserProfile = {
+              id: authUser.id,
+              email: authUser.email || '',
+              full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+              phone: '',
+              role: 'producer',
+              entity_type: 'farm',
+              onboarded: false,
+              carbon_credits_balance: 0,
+            };
+            setCurrentUser(placeholder);
+          }
+        }
+      } catch (e) {
+        console.warn('Session check error:', e);
+      }
+      await refreshData();
+    };
 
-  useEffect(() => {
-    localStorage.setItem(KEYS.LEDGER, JSON.stringify(ledger));
-  }, [ledger]);
+    initAuth();
+  }, []);
 
-  // Register Account
-  const registerAccount = async (email: string, pass: string): Promise<{ success: boolean; message: string; requiresVerification?: boolean }> => {
+  // 2. Register Account with Supabase Auth & create database profile
+  const registerAccount = async (
+    email: string,
+    pass: string
+  ): Promise<{ success: boolean; message: string; requiresVerification?: boolean }> => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password: pass,
       });
 
-      const newUserId = data?.user?.id || `usr-${Date.now()}`;
+      if (error) {
+        return { success: false, message: error.message };
+      }
 
-      // Create new fresh profile in pending onboarding state
-      const newProfile: UserProfile = {
-        id: newUserId,
-        email,
+      const authUser = data?.user;
+      if (!authUser) {
+        return { success: false, message: 'Registration failed. Please try again.' };
+      }
+
+      const initialProfile: UserProfile = {
+        id: authUser.id,
+        email: authUser.email || email,
         full_name: email.split('@')[0],
         phone: '',
         role: 'producer',
         entity_type: 'farm',
-        address: '',
-        latitude: 28.6139,
-        longitude: 77.2090,
-        onboarded: false, // Must onboard on first login!
-        verified: false,
+        onboarded: false, // Must complete onboarding step!
         carbon_credits_balance: 0,
       };
 
-      setAllUsers((prev) => [...prev.filter((u) => u.email !== email), newProfile]);
-      setCurrentUser(newProfile);
-
-      if (error) {
-        // Fallback for local demo if network or offline
-        return {
-          success: true,
-          message: 'Account created locally. Please proceed to onboarding profile.',
-          requiresVerification: false,
-        };
+      // Store in Supabase profiles table
+      const { error: profileErr } = await supabase.from('profiles').upsert(initialProfile);
+      if (profileErr) {
+        console.error('Error inserting profile in Supabase:', profileErr);
       }
+
+      setCurrentUser(initialProfile);
+      await refreshData();
+
+      // Check if email confirmation is required
+      const session = data?.session;
+      const requiresVerification = !session;
 
       return {
         success: true,
-        message: 'Registration successful! Verification email sent. Please complete your onboarding profile.',
-        requiresVerification: true,
+        message: requiresVerification
+          ? `Account created! A confirmation email was sent to ${email}. Please check your inbox / spam folder. You can now complete your onboarding profile.`
+          : 'Account created and verified! Please complete your onboarding profile.',
+        requiresVerification,
       };
     } catch (err: any) {
-      // Fallback: create local test profile
-      const newProfile: UserProfile = {
-        id: `usr-${Date.now()}`,
-        email,
-        full_name: email.split('@')[0],
-        phone: '',
-        role: 'producer',
-        entity_type: 'farm',
-        address: '',
-        latitude: 28.6139,
-        longitude: 77.2090,
-        onboarded: false,
-        verified: false,
-        carbon_credits_balance: 0,
-      };
-      setAllUsers((prev) => [...prev.filter((u) => u.email !== email), newProfile]);
-      setCurrentUser(newProfile);
-      return { success: true, message: 'Account created! Complete your profile.' };
+      return { success: false, message: err.message || 'Registration failed' };
     }
   };
 
-  // Sign In Account
-  const loginAccount = async (email: string, pass: string): Promise<{ success: boolean; message: string }> => {
+  // 3. Login Account with Supabase
+  const loginAccount = async (
+    email: string,
+    pass: string
+  ): Promise<{ success: boolean; message: string }> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password: pass,
       });
 
-      // Find profile in allUsers or create placeholder
-      let matched = allUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
-      if (!matched) {
-        matched = {
-          id: data?.user?.id || `usr-${Date.now()}`,
-          email,
+      if (error) {
+        return { success: false, message: error.message };
+      }
+
+      const authUser = data.user;
+      const { data: profile, error: pErr } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (profile) {
+        setCurrentUser(profile);
+      } else {
+        const placeholder: UserProfile = {
+          id: authUser.id,
+          email: authUser.email || email,
           full_name: email.split('@')[0],
           phone: '',
           role: 'producer',
           entity_type: 'farm',
-          address: '',
-          latitude: 28.6139,
-          longitude: 77.2090,
           onboarded: false,
-          verified: true,
           carbon_credits_balance: 0,
         };
-        setAllUsers((prev) => [...prev, matched!]);
+        await supabase.from('profiles').upsert(placeholder);
+        setCurrentUser(placeholder);
       }
 
-      setCurrentUser(matched);
+      await refreshData();
       return { success: true, message: 'Signed in successfully!' };
     } catch (err: any) {
-      // Local fallback lookup
-      const matched = allUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
-      if (matched) {
-        setCurrentUser(matched);
-        return { success: true, message: 'Signed in successfully!' };
-      }
-      return { success: false, message: 'Invalid credentials or user not found.' };
+      return { success: false, message: err.message || 'Login failed' };
     }
   };
 
-  // First-Time Onboarding: Save profile permanently
-  const completeOnboarding = async (data: Partial<UserProfile>) => {
-    if (!currentUser) return;
+  // 4. Complete Onboarding: Save profile permanently to Supabase
+  const completeOnboarding = async (
+    data: Partial<UserProfile> & { addressData?: AddressData }
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) return { success: false, message: 'No active session' };
 
-    const updated: UserProfile = {
+    const addr = data.addressData;
+    const updatedProfile: UserProfile = {
       ...currentUser,
       ...data,
-      onboarded: true, // Mark permanently onboarded!
-      verified: true,
+      street_address: addr?.street_address || currentUser.street_address,
+      city: addr?.city || currentUser.city,
+      state: addr?.state || currentUser.state,
+      pincode: addr?.pincode || currentUser.pincode,
+      formatted_address: addr?.formatted_address || currentUser.formatted_address,
+      latitude: addr?.latitude ?? currentUser.latitude ?? 28.6139,
+      longitude: addr?.longitude ?? currentUser.longitude ?? 77.2090,
+      onboarded: true, // Marked permanently onboarded
     };
+    delete (updatedProfile as any).addressData;
 
-    setCurrentUser(updated);
-    setAllUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
-
-    // Try saving in Supabase profiles
-    try {
-      await supabase.from('profiles').upsert({
-        id: updated.id,
-        email: updated.email,
-        full_name: updated.full_name,
-        phone: updated.phone,
-        role: updated.role,
-        entity_type: updated.entity_type,
-        address: updated.address,
-        latitude: updated.latitude,
-        longitude: updated.longitude,
-        verified: true,
-      });
-    } catch (e) {
-      console.warn('Supabase profile save skipped:', e);
+    // Save directly to Supabase
+    const { error } = await supabase.from('profiles').upsert(updatedProfile);
+    if (error) {
+      console.error('Supabase profile update error:', error);
+      return { success: false, message: `Failed to save profile: ${error.message}` };
     }
+
+    setCurrentUser(updatedProfile);
+    await refreshData();
+    return { success: true, message: 'Profile saved permanently in Supabase database!' };
   };
 
-  // Switch between created user accounts (so user can test Producer & Processor on 1 machine)
+  // Switch between profiles (useful for testing Producer & Processor in 1 browser)
   const switchUser = (userId: string) => {
-    const user = allUsers.find((u) => u.id === userId);
-    if (user) {
-      setCurrentUser(user);
+    const matched = allUsers.find((u) => u.id === userId);
+    if (matched) {
+      setCurrentUser(matched);
     }
   };
 
-  const signOut = () => {
+  // Sign out
+  const signOut = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
   };
 
-  // Producer creates new waste listing
+  // 5. Add Waste Listing & store in Supabase
   const addListing = async (data: {
     title: string;
     waste_category: 'dry_organic' | 'wet_organic';
@@ -266,11 +303,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     quantity: number;
     unit: 'ton' | 'kg' | 'quintal';
     expected_ready_date: string;
-    location_address: string;
+    addressData: AddressData;
     processor_id?: string;
-  }): Promise<WasteListing> => {
+  }): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) return { success: false, message: 'Must be signed in to add listing' };
+
     const metrics = calculateCarbonMetrics(data.waste_category, data.quantity, data.unit);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const listingId = `lst-${Date.now()}`;
 
     let assignedProcessorName = '';
     let status: WasteListing['status'] = 'available';
@@ -284,10 +324,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const newListing: WasteListing = {
-      id: `lst-${Date.now()}`,
-      producer_id: currentUser?.id || 'demo-prod',
-      producer_name: currentUser?.full_name || 'My Farm',
-      producer_phone: currentUser?.phone || 'N/A',
+      id: listingId,
+      producer_id: currentUser.id,
+      producer_name: currentUser.full_name,
+      producer_phone: currentUser.phone,
       title: data.title,
       waste_category: data.waste_category,
       waste_subcategory: data.waste_subcategory,
@@ -295,31 +335,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       unit: data.unit,
       quantity_in_tons: metrics.tons,
       expected_ready_date: data.expected_ready_date,
-      location_address: data.location_address || currentUser?.address || 'Pickup Site',
-      latitude: currentUser?.latitude || 28.6139,
-      longitude: currentUser?.longitude || 77.2090,
+      street_address: data.addressData.street_address,
+      city: data.addressData.city,
+      state: data.addressData.state,
+      pincode: data.addressData.pincode,
+      formatted_address: data.addressData.formatted_address,
+      latitude: data.addressData.latitude,
+      longitude: data.addressData.longitude,
       estimated_co2_sequestered: metrics.totalCO2e,
       estimated_value_usd: metrics.estimatedMarketValueUSD,
       status,
-      assigned_processor_id: data.processor_id,
-      assigned_processor_name: assignedProcessorName,
+      assigned_processor_id: data.processor_id || undefined,
+      assigned_processor_name: assignedProcessorName || undefined,
       verification_otp: otp,
       created_at: new Date().toISOString(),
     };
 
-    setListings((prev) => [newListing, ...prev]);
+    // 1. Insert listing into Supabase
+    const { error: listErr } = await supabase.from('waste_listings').insert([newListing]);
+    if (listErr) {
+      console.error('Error inserting listing into Supabase:', listErr);
+      return { success: false, message: `Database error: ${listErr.message}` };
+    }
 
-    // If processor was selected, create pickup request automatically
+    // 2. If a processor was selected, insert request into Supabase
     if (data.processor_id) {
       const proc = allUsers.find((u) => u.id === data.processor_id);
-      const newReq: PickupRequest = {
+      const newRequest: PickupRequest = {
         id: `req-${Date.now()}`,
         listing_id: newListing.id,
         listing_title: newListing.title,
-        producer_id: newListing.producer_id,
-        producer_name: newListing.producer_name,
-        producer_phone: newListing.producer_phone,
-        producer_address: newListing.location_address,
+        producer_id: currentUser.id,
+        producer_name: currentUser.full_name,
+        producer_phone: currentUser.phone,
+        producer_address: data.addressData.formatted_address,
         processor_id: data.processor_id,
         processor_name: proc?.full_name || 'Processor',
         quantity_tons: metrics.tons,
@@ -328,78 +377,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         proposed_price_per_ton: proc?.price_per_ton || 45,
         verification_code: otp,
         status: 'pending',
+        credits_awarded: 0,
         created_at: new Date().toISOString(),
       };
-      setPickupRequests((prev) => [newReq, ...prev]);
+
+      const { error: reqErr } = await supabase.from('pickup_requests').insert([newRequest]);
+      if (reqErr) {
+        console.error('Error inserting pickup request:', reqErr);
+      }
     }
 
-    return newListing;
+    await refreshData();
+    return { success: true, message: 'Waste listing saved directly to Supabase!' };
   };
 
-  // Processor accepts request
+  // 6. Processor accepts pickup request in Supabase
   const acceptPickupRequest = async (requestId: string) => {
-    setPickupRequests((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: 'accepted' } : r))
-    );
-
     const req = pickupRequests.find((r) => r.id === requestId);
-    if (req) {
-      setListings((prev) =>
-        prev.map((l) => (l.id === req.listing_id ? { ...l, status: 'accepted' } : l))
-      );
-    }
+    if (!req) return;
+
+    // Update request status to 'accepted'
+    await supabase.from('pickup_requests').update({ status: 'accepted' }).eq('id', requestId);
+
+    // Update listing status to 'accepted'
+    await supabase.from('waste_listings').update({ status: 'accepted' }).eq('id', req.listing_id);
+
+    await refreshData();
   };
 
-  // Handshake completion via 6-digit OTP
+  // 7. Handshake verification via 6-digit OTP
   const verifyPickupHandshake = async (
     requestId: string,
     enteredOtp: string
   ): Promise<{ success: boolean; message: string; credits?: number }> => {
     const req = pickupRequests.find((r) => r.id === requestId);
-    if (!req) return { success: false, message: 'Pickup request not found.' };
+    if (!req) return { success: false, message: 'Request not found in database.' };
 
     if (req.verification_code.trim() !== enteredOtp.trim()) {
       return { success: false, message: 'Incorrect 6-digit code. Please verify the code on the producer’s screen.' };
     }
 
-    // Calculate final verified credits
+    // Calculate verified credits
     const metrics = calculateCarbonMetrics(req.waste_category, req.quantity_tons, 'ton');
     const credits = metrics.carbonCredits;
 
-    // Update request
-    setPickupRequests((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: 'collected', credits_awarded: credits } : r))
-    );
+    // 1. Update request status to 'collected' in Supabase
+    await supabase
+      .from('pickup_requests')
+      .update({ status: 'collected', credits_awarded: credits })
+      .eq('id', requestId);
 
-    // Update listing
-    setListings((prev) =>
-      prev.map((l) => (l.id === req.listing_id ? { ...l, status: 'collected' } : l))
-    );
+    // 2. Update listing status to 'collected' in Supabase
+    await supabase
+      .from('waste_listings')
+      .update({ status: 'collected' })
+      .eq('id', req.listing_id);
 
-    // Award carbon credits to both parties
-    setAllUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === req.producer_id || u.id === req.processor_id) {
-          return {
-            ...u,
-            carbon_credits_balance: Number((u.carbon_credits_balance + credits).toFixed(2)),
-          };
-        }
-        return u;
-      })
-    );
-
-    if (currentUser?.id === req.producer_id || currentUser?.id === req.processor_id) {
-      setCurrentUser((prev) =>
-        prev
-          ? { ...prev, carbon_credits_balance: Number((prev.carbon_credits_balance + credits).toFixed(2)) }
-          : null
-      );
-    }
-
-    // Log in Carbon Ledger
+    // 3. Insert into carbon_ledger table in Supabase
     const certCode = `W2C-CERT-${Date.now().toString().slice(-6)}`;
-    const newEntry: CarbonLedgerEntry = {
+    const ledgerEntry: CarbonLedgerEntry = {
       id: `ledg-${Date.now()}`,
       user_id: req.producer_id,
       user_name: req.producer_name,
@@ -411,24 +447,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       certificate_code: certCode,
       created_at: new Date().toISOString(),
     };
+    await supabase.from('carbon_ledger').insert([ledgerEntry]);
 
-    setLedger((prev) => [newEntry, ...prev]);
+    // 4. Increment carbon credit balances in profiles table
+    const producer = allUsers.find((u) => u.id === req.producer_id);
+    const processor = allUsers.find((u) => u.id === req.processor_id);
 
-    // Confetti celebration
+    if (producer) {
+      await supabase
+        .from('profiles')
+        .update({ carbon_credits_balance: Number(((producer.carbon_credits_balance || 0) + credits).toFixed(2)) })
+        .eq('id', req.producer_id);
+    }
+    if (processor) {
+      await supabase
+        .from('profiles')
+        .update({ carbon_credits_balance: Number(((processor.carbon_credits_balance || 0) + credits).toFixed(2)) })
+        .eq('id', req.processor_id);
+    }
+
+    // Confetti celebration!
     try {
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 120,
+        spread: 80,
         origin: { y: 0.6 },
-        colors: ['#10b981', '#34d399', '#059669', '#38bdf8'],
+        colors: ['#10b981', '#34d399', '#38bdf8', '#f59e0b'],
       });
     } catch (e) {
       // ignore
     }
 
+    await refreshData();
     return {
       success: true,
-      message: `Pickup confirmed! ${credits} Carbon Credits issued to both parties.`,
+      message: `Pickup confirmed! ${credits} Carbon Credits saved to database for both parties.`,
       credits,
     };
   };
@@ -441,11 +494,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         listings,
         pickupRequests,
         ledger,
+        isLoading,
         registerAccount,
         loginAccount,
         completeOnboarding,
-        switchUser,
         signOut,
+        switchUser,
+        refreshData,
         addListing,
         acceptPickupRequest,
         verifyPickupHandshake,
