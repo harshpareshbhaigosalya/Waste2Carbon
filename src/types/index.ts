@@ -145,3 +145,24 @@ export interface AddressData {
   latitude: number;
   longitude: number;
 }
+
+export interface DeliveryReceipt {
+  receiptId: string;
+  requestId: string;
+  certificateCode: string;
+  listingTitle: string;
+  quantityTons: number;
+  ratePerTon: number;
+  totalPayoutINR: number;
+  platformFeeINR: number;
+  producerNetPayoutINR: number;
+  carbonCreditsAwarded: number;
+  co2ePreventedTons: number;
+  producerName: string;
+  producerEmail: string;
+  producerPhone: string;
+  processorName: string;
+  processorEmail: string;
+  timestamp: string;
+  otpVerified: string;
+}

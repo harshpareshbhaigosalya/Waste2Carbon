@@ -8,6 +8,7 @@ import {
   AddressData,
   NegotiationMessage,
   NegotiationStatus,
+  DeliveryReceipt,
 } from '../types';
 import { calculateCarbonMetrics } from '../lib/carbonCalculator';
 import { supabase } from '../lib/supabase';
@@ -44,7 +45,7 @@ interface AppContextType {
   }) => Promise<{ success: boolean; message: string }>;
 
   acceptPickupRequest: (requestId: string) => Promise<void>;
-  verifyPickupHandshake: (requestId: string, enteredOtp: string) => Promise<{ success: boolean; message: string; credits?: number }>;
+  verifyPickupHandshake: (requestId: string, enteredOtp: string) => Promise<{ success: boolean; message: string; credits?: number; receipt?: DeliveryReceipt }>;
 
   // Negotiation Operations
   negotiatePrice: (requestId: string, counterPrice: number, notes?: string) => Promise<{ success: boolean; message: string }>;
@@ -136,24 +137,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Initial load
+  // Initial load: restore active user from localStorage first so refresh is seamless, then sync with Supabase
   useEffect(() => {
     const initAuth = async () => {
       setIsLoading(true);
       try {
+        // 1. Instant check from localStorage
+        const storedUserId = localStorage.getItem('w2c_active_user_id');
+        const storedUserRaw = localStorage.getItem('w2c_active_user');
+        let initialUser: UserProfile | null = null;
+
+        if (storedUserRaw) {
+          try {
+            initialUser = JSON.parse(storedUserRaw);
+            if (initialUser) {
+              setCurrentUser(initialUser);
+            }
+          } catch (e) {
+            console.warn('Error reading stored user:', e);
+          }
+        }
+
+        // 2. Check Supabase auth session if available
         const { data: sessionData } = await supabase.auth.getSession();
         const authUser = sessionData?.session?.user;
 
-        if (authUser) {
+        const effectiveUserId = authUser?.id || storedUserId || initialUser?.id;
+
+        if (effectiveUserId) {
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', authUser.id)
+            .eq('id', effectiveUserId)
             .maybeSingle();
 
           if (profile) {
             setCurrentUser(profile);
-          } else {
+            localStorage.setItem('w2c_active_user_id', profile.id);
+            localStorage.setItem('w2c_active_user', JSON.stringify(profile));
+          } else if (initialUser) {
+            setCurrentUser(initialUser);
+          } else if (authUser) {
             const placeholder: UserProfile = {
               id: authUser.id,
               email: authUser.email || '',
@@ -166,6 +190,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               carbon_credits_balance: 0,
             };
             setCurrentUser(placeholder);
+            localStorage.setItem('w2c_active_user_id', placeholder.id);
+            localStorage.setItem('w2c_active_user', JSON.stringify(placeholder));
           }
         }
       } catch (e) {
@@ -286,6 +312,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       await supabase.from('profiles').upsert(initialProfile);
       setCurrentUser(initialProfile);
+      localStorage.setItem('w2c_active_user_id', initialProfile.id);
+      localStorage.setItem('w2c_active_user', JSON.stringify(initialProfile));
       await refreshData();
 
       const session = data?.session;
@@ -331,6 +359,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.warn('Admin profile upsert:', e);
       }
       setCurrentUser(adminProfile);
+      localStorage.setItem('w2c_active_user_id', adminProfile.id);
+      localStorage.setItem('w2c_active_user', JSON.stringify(adminProfile));
       await refreshData();
       return { success: true, message: 'Welcome Administrator!' };
     }
@@ -350,6 +380,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         if (directProfile) {
           setCurrentUser(directProfile);
+          localStorage.setItem('w2c_active_user_id', directProfile.id);
+          localStorage.setItem('w2c_active_user', JSON.stringify(directProfile));
           await refreshData();
           return { success: true, message: 'Signed in successfully!' };
         }
@@ -365,6 +397,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (profile) {
         setCurrentUser(profile);
+        localStorage.setItem('w2c_active_user_id', profile.id);
+        localStorage.setItem('w2c_active_user', JSON.stringify(profile));
       } else {
         const placeholder: UserProfile = {
           id: authUser.id,
@@ -379,6 +413,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
         await supabase.from('profiles').upsert(placeholder);
         setCurrentUser(placeholder);
+        localStorage.setItem('w2c_active_user_id', placeholder.id);
+        localStorage.setItem('w2c_active_user', JSON.stringify(placeholder));
       }
 
       await refreshData();
@@ -392,6 +428,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (directProfile) {
         setCurrentUser(directProfile);
+        localStorage.setItem('w2c_active_user_id', directProfile.id);
+        localStorage.setItem('w2c_active_user', JSON.stringify(directProfile));
         await refreshData();
         return { success: true, message: 'Signed in successfully!' };
       }
@@ -431,6 +469,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setCurrentUser(updatedProfile);
+    localStorage.setItem('w2c_active_user_id', updatedProfile.id);
+    localStorage.setItem('w2c_active_user', JSON.stringify(updatedProfile));
     await refreshData();
     return { success: true, message: 'Profile saved permanently in Supabase database!' };
   };
@@ -461,6 +501,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setCurrentUser(updated);
+    localStorage.setItem('w2c_active_user_id', updated.id);
+    localStorage.setItem('w2c_active_user', JSON.stringify(updated));
     await refreshData();
     return { success: true, message: 'Profile updated in Supabase!' };
   };
@@ -474,6 +516,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     await supabase.from('profiles').update({ price_per_ton: newPrice }).eq('id', currentUser.id);
     setCurrentUser(updated);
+    localStorage.setItem('w2c_active_user_id', updated.id);
+    localStorage.setItem('w2c_active_user', JSON.stringify(updated));
     await refreshData();
   };
 
@@ -488,12 +532,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const matched = allUsers.find((u) => u.id === userId);
     if (matched) {
       setCurrentUser(matched);
+      localStorage.setItem('w2c_active_user_id', matched.id);
+      localStorage.setItem('w2c_active_user', JSON.stringify(matched));
     }
   };
 
   // Sign out
   const signOut = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem('w2c_active_user_id');
+    localStorage.removeItem('w2c_active_user');
     setCurrentUser(null);
   };
 
@@ -906,7 +954,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const verifyPickupHandshake = async (
     requestId: string,
     enteredOtp: string
-  ): Promise<{ success: boolean; message: string; credits?: number }> => {
+  ): Promise<{ success: boolean; message: string; credits?: number; receipt?: DeliveryReceipt }> => {
     const req = pickupRequests.find((r) => r.id === requestId);
     if (!req) return { success: false, message: 'Request not found in database.' };
 
@@ -958,6 +1006,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('id', req.processor_id);
     }
 
+    // Build automated Delivery Receipt (Goods Receipt Note & Carbon Settlement)
+    const ratePerTon = req.counter_price_per_ton || req.proposed_price_per_ton || 2500;
+    const totalPayoutINR = Math.round(ratePerTon * req.quantity_tons);
+    const platformFeeINR = Math.round(totalPayoutINR * 0.025); // 2.5% platform brokerage
+    const producerNetPayoutINR = totalPayoutINR; // Industrial processor pays the fee on top
+
+    const receipt: DeliveryReceipt = {
+      receiptId: `W2C-GRN-${Date.now().toString().slice(-6)}`,
+      requestId: req.id,
+      certificateCode: certCode,
+      listingTitle: req.listing_title,
+      quantityTons: req.quantity_tons,
+      ratePerTon,
+      totalPayoutINR,
+      platformFeeINR,
+      producerNetPayoutINR,
+      carbonCreditsAwarded: credits,
+      co2ePreventedTons: metrics.totalCO2e,
+      producerName: req.producer_name,
+      producerEmail: producer?.email || 'farmer@wastetocarbon.in',
+      producerPhone: req.producer_phone || producer?.phone || '+91 98765 43210',
+      processorName: req.processor_name,
+      processorEmail: processor?.email || 'plant@wastetocarbon.in',
+      timestamp: new Date().toISOString(),
+      otpVerified: enteredOtp.trim(),
+    };
+
     try {
       confetti({
         particleCount: 120,
@@ -974,6 +1049,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       success: true,
       message: `Pickup confirmed! ${credits} Carbon Credits issued to both parties.`,
       credits,
+      receipt,
     };
   };
 

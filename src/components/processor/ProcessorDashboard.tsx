@@ -23,11 +23,12 @@ import {
   Calendar,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { PickupRequest, WasteListing } from '../../types';
+import { PickupRequest, WasteListing, DeliveryReceipt } from '../../types';
 import { SmartClusterView } from './SmartClusterView';
 import { generateWasteClusters, ClusterPoint, WasteCluster } from '../../lib/clusteringOptimizer';
 import { Layers } from 'lucide-react';
 import { NegotiationChatModal } from '../NegotiationChatModal';
+import { DeliveryReceiptModal } from './DeliveryReceiptModal';
 
 interface ProcessorDashboardProps {
   onOpenCertificate: () => void;
@@ -62,6 +63,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
   const [handshakeError, setHandshakeError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeDeliveryReceipt, setActiveDeliveryReceipt] = useState<DeliveryReceipt | null>(null);
 
   // Quick Price Edit inline state
   const [isEditingPrice, setIsEditingPrice] = useState(false);
@@ -189,44 +191,44 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
   if (currentUser?.role === 'processor' && !currentUser?.verified) {
     return (
       <div className="max-w-2xl mx-auto py-10 space-y-6">
-        <div className="bg-white border-2 border-amber-300 rounded-3xl p-8 shadow-xl text-center space-y-6">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700">
+        <div className="bg-white border border-[#E7E1D7] rounded-3xl p-8 shadow-sm text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FDF6E2] border border-[#EED99E] flex items-center justify-center text-[#855B09]">
             <Clock className="w-8 h-8 animate-pulse" />
           </div>
 
           <div className="space-y-2">
-            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FDF6E2] text-[#855B09] border border-[#EED99E]">
               Under Verification
             </span>
-            <h1 className="text-2xl font-black text-slate-900">Facility Verification in Progress</h1>
-            <p className="text-sm text-slate-600 max-w-lg mx-auto">
-              Your conversion plant registration and compliance documents have been submitted to the W2C Admin team for review.
+            <h1 className="text-2xl font-black text-[#1C1E21]">Facility Verification in Progress</h1>
+            <p className="text-sm text-[#575B62] max-w-lg mx-auto">
+              Your conversion plant registration and compliance documents have been submitted to the Waste2Carbon Admin team for review.
             </p>
           </div>
 
           {/* Document Summary Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <FileText className="w-4 h-4 text-amber-600" />
+          <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-5 text-left space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#1C1E21]">
+              <FileText className="w-4 h-4 text-[#9A6A15]" />
               <span>Submitted Verification Documents</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="bg-white p-3 rounded-xl border border-slate-200">
-                <span className="text-slate-500 block">Facility Name</span>
-                <span className="font-semibold text-slate-900">{currentUser?.full_name}</span>
+              <div className="bg-white p-3 rounded-xl border border-[#E7E1D7]">
+                <span className="text-[#828892] block">Facility Name</span>
+                <span className="font-semibold text-[#1C1E21]">{currentUser?.full_name}</span>
               </div>
-              <div className="bg-white p-3 rounded-xl border border-slate-200">
-                <span className="text-slate-500 block">Document Type</span>
-                <span className="font-semibold text-slate-900 uppercase">{currentUser?.document_type || 'SPCB Consent to Operate'}</span>
+              <div className="bg-white p-3 rounded-xl border border-[#E7E1D7]">
+                <span className="text-[#828892] block">Document Type</span>
+                <span className="font-semibold text-[#1C1E21] uppercase">{currentUser?.document_type || 'SPCB Consent to Operate'}</span>
               </div>
-              <div className="bg-white p-3 rounded-xl border border-slate-200">
-                <span className="text-slate-500 block">Registration / License No.</span>
-                <span className="font-semibold text-slate-900">{currentUser?.document_number || 'Under Review'}</span>
+              <div className="bg-white p-3 rounded-xl border border-[#E7E1D7]">
+                <span className="text-[#828892] block">Registration / License No.</span>
+                <span className="font-semibold text-[#1C1E21]">{currentUser?.document_number || 'Under Review'}</span>
               </div>
-              <div className="bg-white p-3 rounded-xl border border-slate-200">
-                <span className="text-slate-500 block">Status</span>
-                <span className="font-bold text-amber-700">Pending Admin Approval</span>
+              <div className="bg-white p-3 rounded-xl border border-[#E7E1D7]">
+                <span className="text-[#828892] block">Status</span>
+                <span className="font-bold text-[#855B09]">Pending Admin Approval</span>
               </div>
             </div>
           </div>
@@ -235,15 +237,15 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 border border-slate-300 transition"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F8F5EE] hover:bg-[#F2ECE0] text-[#1C1E21] text-xs font-bold flex items-center justify-center gap-2 border border-[#E7E1D7] transition cursor-pointer"
             >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#2D5A43]' : ''}`} />
               <span>Check Status</span>
             </button>
             {onOpenProfile && (
               <button
                 onClick={onOpenProfile}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-2 shadow transition"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#2D5A43] hover:bg-[#1E4330] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
               >
                 <User className="w-4 h-4" />
                 <span>View & Edit Profile</span>
@@ -251,8 +253,8 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
             )}
           </div>
 
-          <p className="text-[11px] text-slate-500">
-            For testing: Log in with <code className="text-amber-800 font-bold">admin@gmail.com</code> / <code className="text-amber-800 font-bold">admin123</code> to approve this facility instantly!
+          <p className="text-[11px] text-[#828892]">
+            For testing: Log in with <code className="text-[#9A6A15] font-bold">admin@gmail.com</code> / <code className="text-[#9A6A15] font-bold">admin123</code> to approve this facility instantly!
           </p>
         </div>
       </div>
@@ -274,27 +276,30 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
     } else {
       setActiveHandshakeReq(null);
       setEnteredOtp('');
+      if (res.receipt) {
+        setActiveDeliveryReceipt(res.receipt);
+      }
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with Clean Modern Forest & Amber Accents */}
-      <div className="bg-gradient-to-r from-amber-800 via-amber-700 to-emerald-900 rounded-3xl p-6 sm:p-8 shadow-lg text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden">
+      {/* Top Banner with Clean Warm Forest & Amber Accents */}
+      <div className="bg-gradient-to-r from-[#1E4330] via-[#244E39] to-[#2D5A43] rounded-3xl p-6 sm:p-8 shadow-sm text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden">
         {/* Ambient glow */}
-        <div className="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
+        <div className="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-[#E5C378]/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-xs">
+            <span className="px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#E5C378] text-[#1E4330] shadow-2xs">
               {currentUser?.facility_type === 'biochar' ? 'Biochar Pyrolysis Plant' : 'Biogas Digester Plant'}
             </span>
-            <span className="text-xs text-amber-100 font-medium">
+            <span className="text-xs text-[#E1DCD3] font-medium">
               · {currentUser?.city ? `${currentUser.city}, ${currentUser.state}` : currentUser?.formatted_address || 'Registered Facility'}
             </span>
             {currentUser?.verified && (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-200 border border-emerald-400/50 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-300" />
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EDF6F0] text-[#1D5E34] border border-[#BCE1C8] flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-[#2D5A43]" />
                 Verified Facility
               </span>
             )}
@@ -302,7 +307,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             {currentUser?.full_name}
           </h1>
-          <p className="text-xs sm:text-sm text-amber-100/90 max-w-xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#D7DFD8] max-w-xl leading-relaxed">
             Accept organic feedstock from nearby farms, negotiate purchase prices, and convert waste into verified carbon credits.
           </p>
         </div>
@@ -311,19 +316,19 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           {onOpenVoiceAssistant && (
             <button
               onClick={onOpenVoiceAssistant}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black px-4 py-3 rounded-2xl shadow-md transition"
+              className="flex items-center gap-2 bg-[#F8F5EE] hover:bg-[#F2ECE0] text-[#1E4330] font-bold px-4 py-3 rounded-2xl shadow-sm transition cursor-pointer border border-[#D6CEC2]"
             >
-              <Sparkles className="w-4 h-4 text-slate-950" />
-              <span>AgriCarbon AI Voice</span>
+              <Sparkles className="w-4 h-4 text-[#9A6A15]" />
+              <span>AI Voice Assistant</span>
             </button>
           )}
 
           {onOpenProfile && (
             <button
               onClick={onOpenProfile}
-              className="px-4 py-3 rounded-2xl bg-black/20 hover:bg-black/30 text-white border border-white/30 text-xs font-bold flex items-center gap-2 transition"
+              className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
             >
-              <User className="w-4 h-4 text-amber-300" />
+              <User className="w-4 h-4 text-[#E5C378]" />
               <span>Facility Profile</span>
             </button>
           )}
@@ -331,15 +336,15 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           <button
             onClick={handleRefresh}
             title="Refresh database"
-            className="p-3 rounded-2xl bg-black/20 hover:bg-black/30 text-amber-200 border border-white/30 transition"
+            className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition cursor-pointer"
           >
-            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-white' : ''}`} />
+            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-[#E5C378]' : ''}`} />
           </button>
 
           {/* Quick Price Editor in Banner */}
-          <div className="bg-white text-slate-900 rounded-2xl px-5 py-3 text-right shadow-lg shrink-0">
+          <div className="bg-white text-[#1C1E21] rounded-2xl px-5 py-3 text-right shadow-sm shrink-0 border border-[#E7E1D7]">
             <div className="flex items-center justify-end gap-1.5 mb-0.5">
-              <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+              <span className="text-[10px] text-[#828892] uppercase tracking-widest font-bold">
                 Your Buying Offer
               </span>
               {!isEditingPrice && (
@@ -348,7 +353,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                     setNewPrice(currentUser?.price_per_ton || 2500);
                     setIsEditingPrice(true);
                   }}
-                  className="text-[10px] text-emerald-700 hover:underline font-bold"
+                  className="text-[10px] text-[#2D5A43] hover:underline font-bold cursor-pointer"
                 >
                   (Edit)
                 </button>
@@ -357,69 +362,106 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
             {isEditingPrice ? (
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-sm text-emerald-700 font-bold">₹</span>
+                <span className="text-sm text-[#2D5A43] font-bold">₹</span>
                 <input
                   type="number"
                   step="50"
                   value={newPrice}
                   onChange={(e) => setNewPrice(Number(e.target.value))}
-                  className="w-24 bg-slate-50 border-2 border-emerald-600 rounded-lg px-2 py-1 text-sm font-black text-slate-900 text-right focus:outline-none"
+                  className="w-24 bg-[#FAF8F5] border border-[#2D5A43] rounded-lg px-2 py-1 text-sm font-bold text-[#1C1E21] text-right focus:outline-none"
                   autoFocus
                 />
                 <button
                   onClick={handleQuickPriceSave}
-                  className="p-1.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white"
+                  className="p-1.5 rounded bg-[#2D5A43] hover:bg-[#1E4330] text-white cursor-pointer"
                   title="Save Price"
                 >
                   <Check className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setIsEditingPrice(false)}
-                  className="text-slate-400 hover:text-slate-700 text-xs px-1"
+                  className="text-[#828892] hover:text-[#1C1E21] text-xs px-1 cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
             ) : (
               <div>
-                <span className="text-2xl font-black text-emerald-700">
+                <span className="text-2xl font-black text-[#2D5A43] tabular-nums">
                   ₹{currentUser?.price_per_ton ? currentUser.price_per_ton.toLocaleString('en-IN') : '2,500'}
                 </span>
-                <span className="text-xs text-slate-500"> / ton</span>
-                {priceSaved && <p className="text-[10px] text-emerald-700 font-bold">Price Updated!</p>}
+                <span className="text-xs text-[#828892]"> / ton</span>
+                {priceSaved && <p className="text-[10px] text-[#1D5E34] font-bold">Price Updated!</p>}
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* KPI Cards in Clean White / Gold Style */}
+      {/* Operational Workflow States Pipeline */}
+      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-4 shadow-2xs">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-[#828892]">
+            Circular Lifecycle Tracking Pipeline
+          </span>
+          <span className="text-[10px] font-bold text-[#2D5A43] bg-[#EDF6F0] px-2 py-0.5 rounded border border-[#BCE1C8]">
+            IPCC MRV Audit
+          </span>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center text-[10px] sm:text-xs">
+          {[
+            { label: 'Available', status: 'done' },
+            { label: 'Cluster Forming', status: 'done' },
+            { label: 'Pickup Eligible', status: 'active' },
+            { label: 'Collection', status: 'pending' },
+            { label: 'Received', status: 'pending' },
+            { label: 'Converted', status: 'pending' },
+            { label: 'Verified', status: 'pending' },
+          ].map((step, idx) => (
+            <div
+              key={step.label}
+              className={`py-2 px-1 rounded-xl border font-bold transition flex flex-col items-center justify-center gap-1 ${
+                idx === 2
+                  ? 'bg-[#FDF6E2] border-[#EED99E] text-[#855B09]'
+                  : idx < 2
+                  ? 'bg-[#EDF6F0] border-[#BCE1C8] text-[#1D5E34]'
+                  : 'bg-[#FAF8F5] border-[#E7E1D7] text-[#828892]'
+              }`}
+            >
+              <span className="text-[9px] opacity-70">0{idx + 1}</span>
+              <span className="truncate w-full font-semibold">{step.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* KPI Cards in Clean Warm SaaS Style */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-500">Incoming Feedstock Requests</span>
-          <p className="text-2xl font-black text-amber-700 mt-1">
+        <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-2xs">
+          <span className="text-xs font-semibold text-[#575B62]">Incoming Feedstock Requests</span>
+          <p className="text-2xl font-black text-[#9A6A15] mt-1 tabular-nums">
             {myRequests.filter((r) => r.status === 'pending').length}{' '}
-            <span className="text-xs text-slate-500 font-normal">Pending</span>
+            <span className="text-xs text-[#828892] font-normal">Pending</span>
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">In Supabase queue</p>
+          <p className="text-[11px] text-[#828892] mt-0.5">In database queue</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-500">Scheduled Pickups</span>
-          <p className="text-2xl font-black text-sky-700 mt-1">
+        <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-2xs">
+          <span className="text-xs font-semibold text-[#575B62]">Scheduled Pickups</span>
+          <p className="text-2xl font-black text-[#1E568A] mt-1 tabular-nums">
             {myRequests.filter((r) => r.status === 'accepted').length}{' '}
-            <span className="text-xs text-slate-500 font-normal">In Progress</span>
+            <span className="text-xs text-[#828892] font-normal">In Progress</span>
           </p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Awaiting OTP verification</p>
+          <p className="text-[11px] text-[#828892] mt-0.5">Awaiting OTP verification</p>
         </div>
 
-        <div className="bg-white border border-amber-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-xs font-semibold text-amber-800">Facility Carbon Credits</span>
-          <p className="text-2xl font-black text-emerald-700 mt-1">
+        <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-2xs">
+          <span className="text-xs font-semibold text-[#575B62]">Facility Carbon Credits</span>
+          <p className="text-2xl font-black text-[#2D5A43] mt-1 tabular-nums">
             {currentUser?.carbon_credits_balance || 0}{' '}
-            <span className="text-xs text-slate-500 font-normal">Credits</span>
+            <span className="text-xs text-[#828892] font-normal">Credits</span>
           </p>
-          <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Minted upon delivery</p>
+          <p className="text-[11px] text-[#2D5A43] font-medium mt-0.5">Minted upon delivery</p>
         </div>
       </div>
 
@@ -427,40 +469,40 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => setActiveTab('clusters')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition cursor-pointer shadow-xs ${
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
             activeTab === 'clusters'
-              ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-md'
-              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              ? 'bg-[#2D5A43] text-white shadow-sm'
+              : 'bg-white text-[#575B62] border border-[#E7E1D7] hover:bg-[#F8F5EE]'
           }`}
         >
-          <Layers className="w-4 h-4 text-amber-300" />
+          <Layers className="w-4 h-4 text-[#E5C378]" />
           <span>Smart AI Clusters & Routes ({computedClusters.length})</span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-400 text-emerald-950 font-black uppercase">
+          <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#E5C378] text-[#1E4330] font-bold uppercase">
             Bulk Logistics
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('requests')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition cursor-pointer shadow-xs ${
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
             activeTab === 'requests'
-              ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-md'
-              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              ? 'bg-[#2D5A43] text-white shadow-sm'
+              : 'bg-white text-[#575B62] border border-[#E7E1D7] hover:bg-[#F8F5EE]'
           }`}
         >
-          <Truck className="w-4 h-4 text-amber-300" />
+          <Truck className="w-4 h-4 text-[#E5C378]" />
           <span>Direct Requests & Negotiations ({myRequests.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('marketplace')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition cursor-pointer shadow-xs ${
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
             activeTab === 'marketplace'
-              ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-md'
-              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              ? 'bg-[#2D5A43] text-white shadow-sm'
+              : 'bg-white text-[#575B62] border border-[#E7E1D7] hover:bg-[#F8F5EE]'
           }`}
         >
-          <Sparkles className="w-4 h-4 text-amber-400" />
+          <Sparkles className="w-4 h-4 text-[#E5C378]" />
           <span>Open Marketplace Batches ({openMarketplaceListings.length})</span>
         </button>
       </div>
@@ -483,24 +525,24 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
       {/* Tab Content: Individual Requests Table / Cards */}
       {activeTab === 'requests' && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-[#E7E1D7] rounded-3xl p-6 shadow-2xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-black text-slate-900">Feedstock Intake & Negotiation Queue</h2>
-              <p className="text-xs text-slate-500">
+              <h2 className="text-base font-black text-[#1C1E21]">Feedstock Intake & Negotiation Queue</h2>
+              <p className="text-xs text-[#575B62]">
                 Inspect actual batch photos, negotiate fair purchase prices, and schedule collections
               </p>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FAF8F5] text-[#575B62] border border-[#E7E1D7]">
               {myRequests.filter((r) => r.status === 'pending').length} Active Negotiations
             </span>
           </div>
 
           {myRequests.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 space-y-2">
-              <Truck className="w-10 h-10 mx-auto opacity-40 text-amber-600" />
-              <p className="text-sm font-medium text-slate-700">No incoming waste requests in database yet.</p>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <div className="py-12 text-center text-[#828892] space-y-2">
+              <Truck className="w-10 h-10 mx-auto opacity-40 text-[#2D5A43]" />
+              <p className="text-sm font-medium text-[#1C1E21]">No incoming waste requests in database yet.</p>
+              <p className="text-xs text-[#575B62] max-w-sm mx-auto">
                 Check the "Open Marketplace Batches" tab to discover available farmer residue and submit buying offers!
               </p>
             </div>
@@ -513,74 +555,78 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                 return (
                   <div
                     key={req.id}
-                    className="bg-[#fcfbf7] border border-slate-200 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-amber-300 transition shadow-sm"
+                    className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-[#D6CEC2] transition shadow-2xs"
                   >
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-base text-slate-900">{req.listing_title}</h3>
+                        <h3 className="font-bold text-base text-[#1C1E21]">{req.listing_title}</h3>
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                             req.status === 'collected'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              ? 'badge-status-verified'
                               : req.status === 'accepted'
-                              ? 'bg-sky-100 text-sky-800 border border-sky-300'
-                              : 'bg-amber-100 text-amber-900 border border-amber-300'
+                              ? 'badge-status-actual'
+                              : 'badge-status-estimated'
                           }`}
                         >
-                          {req.status}
+                          {req.status === 'collected'
+                            ? 'VERIFIED'
+                            : req.status === 'accepted'
+                            ? 'ACTUAL'
+                            : 'ESTIMATED'}
                         </span>
                       </div>
 
-                      <p className="text-xs text-slate-600">
+                      <p className="text-xs text-[#575B62]">
                         Producer: <strong>{req.producer_name}</strong> · Phone: <strong>{req.producer_phone}</strong> · Quantity: <strong>{req.quantity_tons} Tons</strong>
                       </p>
 
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <div className="flex items-center gap-1.5 text-xs text-[#828892]">
+                        <MapPin className="w-3.5 h-3.5 text-[#828892] shrink-0" />
                         <span className="truncate">{req.producer_address}</span>
                       </div>
 
                       {/* Quality Inspection Photo preview */}
                       {req.listing_photo_url && (
-                        <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200 w-fit">
+                        <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7] w-fit">
                           <img
                             src={req.listing_photo_url}
                             alt="Quality Inspection"
-                            className="w-16 h-14 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0 cursor-pointer"
+                            className="w-16 h-14 rounded-lg object-cover border border-[#E7E1D7] shadow-2xs shrink-0 cursor-pointer"
                             onClick={() => setChatReq(req)}
                           />
                           <div className="text-xs space-y-0.5">
-                            <span className="text-[10px] text-slate-500 font-medium block">Farmer's Quality Photo:</span>
-                            <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
+                            <span className="text-[10px] text-[#828892] font-medium block">Farmer's Quality Photo:</span>
+                            <span className="font-bold text-[#1D5E34] bg-[#EDF6F0] px-2 py-0.5 rounded-md border border-[#BCE1C8] text-[11px]">
                               {req.quality_grade || 'Grade B (Standard)'}
                             </span>
-                            <p className="text-[10px] text-slate-500">Click photo or chat to negotiate based on quality condition.</p>
+                            <p className="text-[10px] text-[#575B62]">Click photo or chat to negotiate based on quality condition.</p>
                           </div>
                         </div>
                       )}
 
                       {/* Price & Negotiation Status Badge */}
                       <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                        <span className="bg-white border border-slate-200 px-3 py-1 rounded-xl text-slate-700 font-medium">
-                          Current Price: <strong className="text-emerald-700">₹{req.proposed_price_per_ton.toLocaleString('en-IN')}/ton</strong>
+                        <span className="bg-white border border-[#E7E1D7] px-3 py-1 rounded-xl text-[#1C1E21] font-medium">
+                          Current Price: <strong className="text-[#2D5A43] tabular-nums">₹{req.proposed_price_per_ton.toLocaleString('en-IN')}/ton</strong>
                         </span>
 
                         {isCounteredByProducer && req.counter_price_per_ton && (
-                          <span className="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
-                            <ArrowUpDown className="w-3.5 h-3.5 text-amber-700" />
+                          <span className="bg-[#FDF6E2] text-[#855B09] border border-[#EED99E] px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+                            <ArrowUpDown className="w-3.5 h-3.5 text-[#9A6A15]" />
                             Farmer Countered: ₹{req.counter_price_per_ton.toLocaleString('en-IN')}/ton
                           </span>
                         )}
 
                         {isCounteredByMe && req.counter_price_per_ton && (
-                          <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-xl font-medium">
+                          <span className="bg-[#FAF8F5] text-[#575B62] border border-[#E7E1D7] px-2.5 py-1 rounded-xl font-medium">
                             Your Counter: ₹{req.counter_price_per_ton.toLocaleString('en-IN')}/ton (Awaiting farmer)
                           </span>
                         )}
 
                         {req.negotiation_status === 'agreed' && (
-                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="badge-status-verified px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#2D5A43]" />
                             Agreed Price Locked
                           </span>
                         )}
@@ -588,7 +634,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
                       {/* Producer note */}
                       {req.negotiation_notes && (
-                        <p className="text-xs text-amber-900 italic bg-amber-50 p-2 rounded-lg border border-amber-200">
+                        <p className="text-xs text-[#855B09] italic bg-[#FDF6E2] p-2 rounded-lg border border-[#EED99E]">
                           Latest Note: "{req.negotiation_notes}"
                         </p>
                       )}
@@ -599,17 +645,17 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                       {/* Interactive Negotiation Chat button */}
                       <button
                         onClick={() => setChatReq(req)}
-                        className="bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs px-4 py-2.5 rounded-xl border border-amber-300 transition flex items-center gap-1.5 cursor-pointer"
+                        className="bg-white hover:bg-[#F8F5EE] text-[#1C1E21] font-bold text-xs px-4 py-2.5 rounded-xl border border-[#E7E1D7] transition flex items-center gap-1.5 cursor-pointer"
                       >
-                        <MessageSquare className="w-4 h-4 text-amber-800" />
-                        <span>💬 Chat & Negotiate</span>
+                        <MessageSquare className="w-4 h-4 text-[#9A6A15]" />
+                        <span>Chat & Negotiate</span>
                       </button>
 
                       {/* Direct Accept button if producer countered */}
                       {isCounteredByProducer && req.status === 'pending' && (
                         <button
                           onClick={() => respondToNegotiation(req.id, true)}
-                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1 cursor-pointer"
+                          className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1 cursor-pointer"
                         >
                           <Check className="w-4 h-4" /> Accept Farmer Price
                         </button>
@@ -619,7 +665,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                       {req.status === 'pending' && !isCounteredByProducer && (
                         <button
                           onClick={() => acceptPickupRequest(req.id)}
-                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition cursor-pointer"
+                          className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition cursor-pointer"
                         >
                           Accept & Schedule Pickup
                         </button>
@@ -629,9 +675,9 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                       {req.status === 'accepted' && (
                         <button
                           onClick={() => setActiveHandshakeReq(req)}
-                          className="bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                          className="bg-[#9A6A15] hover:bg-[#7D540E] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer"
                         >
-                          <KeyRound className="w-4 h-4 text-slate-950" />
+                          <KeyRound className="w-4 h-4 text-white" />
                           <span>Verify Pickup Handshake</span>
                         </button>
                       )}
@@ -644,9 +690,9 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                             if (entry) setSelectedCertificate(entry);
                             onOpenCertificate();
                           }}
-                          className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-300 transition cursor-pointer"
+                          className="flex items-center gap-1.5 text-xs font-bold text-[#1D5E34] hover:text-[#144224] bg-[#EDF6F0] px-3.5 py-2 rounded-xl border border-[#BCE1C8] transition cursor-pointer"
                         >
-                          <FileCheck className="w-4 h-4 text-emerald-700" />
+                          <FileCheck className="w-4 h-4 text-[#2D5A43]" />
                           <span>View Certificate</span>
                         </button>
                       )}
@@ -661,19 +707,19 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
       {/* Tab Content: Open Marketplace Waste Batches */}
       {activeTab === 'marketplace' && (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-[#E7E1D7] rounded-3xl p-6 shadow-2xs space-y-4">
           <div>
-            <h2 className="text-base font-black text-slate-900">Available Feedstock on Open Marketplace</h2>
-            <p className="text-xs text-slate-500">
+            <h2 className="text-base font-black text-[#1C1E21]">Available Feedstock on Open Marketplace</h2>
+            <p className="text-xs text-[#575B62]">
               Producers have published these organic waste batches to the open market. Inspect quality photos and submit buying proposals to start negotiations.
             </p>
           </div>
 
           {openMarketplaceListings.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 space-y-2">
-              <Sparkles className="w-10 h-10 mx-auto opacity-40 text-amber-600" />
-              <p className="text-sm font-medium text-slate-700">No unassigned listings currently available.</p>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <div className="py-12 text-center text-[#828892] space-y-2">
+              <Sparkles className="w-10 h-10 mx-auto opacity-40 text-[#2D5A43]" />
+              <p className="text-sm font-medium text-[#1C1E21]">No unassigned listings currently available.</p>
+              <p className="text-xs text-[#575B62] max-w-sm mx-auto">
                 When farmers post new listings to the marketplace, they will appear here instantly!
               </p>
             </div>
@@ -682,61 +728,61 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
               {openMarketplaceListings.map((listing) => (
                 <div
                   key={listing.id}
-                  className="bg-[#fcfbf7] border border-slate-200 rounded-2xl p-5 space-y-3 hover:border-amber-400 transition shadow-sm flex flex-col justify-between"
+                  className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-5 space-y-3 hover:border-[#D6CEC2] transition shadow-2xs flex flex-col justify-between"
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-bold text-base text-slate-900">{listing.title}</h3>
-                        <p className="text-xs text-slate-500">
+                        <h3 className="font-bold text-base text-[#1C1E21]">{listing.title}</h3>
+                        <p className="text-xs text-[#575B62]">
                           Farmer: <strong>{listing.producer_name}</strong> · Phone: <strong>{listing.producer_phone}</strong>
                         </p>
                       </div>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EDF6F0] text-[#1D5E34] border border-[#BCE1C8]">
                         {listing.quantity_in_tons} Tons
                       </span>
                     </div>
 
                     {/* Photo preview */}
                     {listing.photo_url ? (
-                      <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200">
+                      <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7]">
                         <img
                           src={listing.photo_url}
                           alt="Waste Inspection"
-                          className="w-16 h-14 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
+                          className="w-16 h-14 rounded-lg object-cover border border-[#E7E1D7] shadow-2xs shrink-0"
                         />
                         <div className="text-xs space-y-0.5">
-                          <span className="text-[10px] text-slate-500 font-medium block">Quality Inspection Photo:</span>
-                          <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
+                          <span className="text-[10px] text-[#828892] font-medium block">Quality Inspection Photo:</span>
+                          <span className="font-bold text-[#1D5E34] bg-[#EDF6F0] px-2 py-0.5 rounded-md border border-[#BCE1C8] text-[11px]">
                             {listing.quality_grade || 'Grade B (Standard)'}
                           </span>
                           {listing.quality_notes && (
-                            <p className="text-[10px] text-slate-600 italic">"{listing.quality_notes}"</p>
+                            <p className="text-[10px] text-[#575B62] italic">"{listing.quality_notes}"</p>
                           )}
                         </div>
                       </div>
                     ) : (
-                      <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5">
-                        <Camera className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                      <div className="p-2 rounded-xl bg-[#FDF6E2] border border-[#EED99E] text-[11px] text-[#855B09] flex items-center gap-1.5">
+                        <Camera className="w-3.5 h-3.5 text-[#9A6A15] shrink-0" />
                         <span>No photo attached · Quality: {listing.quality_grade || 'Grade B (Standard)'}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-[#828892]">
+                      <MapPin className="w-3.5 h-3.5 text-[#828892] shrink-0" />
                       <span className="truncate">{listing.formatted_address || `${listing.city}, ${listing.state}`}</span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-[#828892]">
+                      <Calendar className="w-3.5 h-3.5 text-[#828892] shrink-0" />
                       <span>Ready by: {listing.expected_ready_date}</span>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                  <div className="pt-2 border-t border-[#E7E1D7] flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-slate-500 block">Baseline Value</span>
-                      <span className="font-black text-emerald-700 text-sm">
+                      <span className="text-[10px] text-[#828892] block">Baseline Value</span>
+                      <span className="font-bold text-[#2D5A43] text-sm tabular-nums">
                         ₹{listing.estimated_value_usd.toLocaleString('en-IN')}
                       </span>
                     </div>
@@ -747,9 +793,9 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                         setProposalPrice(currentUser?.price_per_ton || 2500);
                         setProposalNote(`Inspected quality (${listing.quality_grade || 'Standard'}). We offer ₹${currentUser?.price_per_ton || 2500}/ton with farm collection.`);
                       }}
-                      className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                      className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <Sparkles className="w-3.5 h-3.5 text-[#E5C378]" />
                       <span>Propose Buying Offer</span>
                     </button>
                   </div>
@@ -762,19 +808,19 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
       {/* Handshake OTP Verification Modal */}
       {activeHandshakeReq && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-md bg-white border-2 border-amber-300 rounded-3xl shadow-2xl p-6 space-y-4">
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-amber-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1E21]/40 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-md bg-white border border-[#E7E1D7] rounded-3xl shadow-xl p-6 space-y-4">
+            <h3 className="text-base font-black text-[#1C1E21] flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-[#9A6A15]" />
               <span>Verify Pickup Handshake</span>
             </h3>
-            <p className="text-xs text-slate-600">
-              Ask <strong>{activeHandshakeReq.producer_name}</strong> for the 6-digit code displayed on their screen to confirm delivery in Supabase.
+            <p className="text-xs text-[#575B62]">
+              Ask <strong>{activeHandshakeReq.producer_name}</strong> for the 6-digit code displayed on their screen to confirm delivery in database.
             </p>
 
             <form onSubmit={handleVerify} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-[#1C1E21] mb-1.5">
                   Enter 6-Digit OTP Code
                 </label>
                 <input
@@ -784,12 +830,12 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                   onChange={(e) => setEnteredOtp(e.target.value.trim())}
                   placeholder="e.g. 749210"
                   required
-                  className="w-full text-center text-3xl font-mono font-black tracking-widest bg-slate-50 border-2 border-amber-400 rounded-2xl py-3 text-amber-800 focus:outline-none focus:bg-white"
+                  className="w-full text-center text-3xl font-mono font-bold tracking-widest bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl py-3 text-[#9A6A15] focus:outline-none focus:bg-white focus:border-[#2D5A43]"
                 />
               </div>
 
               {handshakeError && (
-                <p className="text-xs text-rose-700 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+                <p className="text-xs text-[#9E2A2B] bg-[#FBEAE9] p-2.5 rounded-xl border border-[#F5C2C0]">
                   {handshakeError}
                 </p>
               )}
@@ -798,21 +844,29 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveHandshakeReq(null)}
-                  className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+                  className="px-4 py-2 text-xs text-[#575B62] hover:text-[#1C1E21] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isVerifying || enteredOtp.length < 6}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 cursor-pointer"
+                  className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition disabled:opacity-50 cursor-pointer"
                 >
-                  {isVerifying ? 'Verifying in Supabase...' : 'Confirm Delivery & Mint Credits'}
+                  {isVerifying ? 'Verifying...' : 'Confirm Delivery & Mint Credits'}
                 </button>
               </div>
             </form>
           </div>
         </div>
+      )}
+
+      {/* Post-Handshake Automated Delivery Receipt & WhatsApp Dispatch Modal */}
+      {activeDeliveryReceipt && (
+        <DeliveryReceiptModal
+          receipt={activeDeliveryReceipt}
+          onClose={() => setActiveDeliveryReceipt(null)}
+        />
       )}
 
       {/* Two-Way Negotiation Chat Modal */}
@@ -826,36 +880,36 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
       {/* Marketplace Proposal Modal */}
       {proposalListing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-md bg-white border-2 border-amber-300 rounded-3xl shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1E21]/40 backdrop-blur-xs animate-in fade-in">
+          <div className="relative w-full max-w-md bg-white border border-[#E7E1D7] rounded-3xl shadow-xl p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-600" />
+              <h3 className="text-base font-black text-[#1C1E21] flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#9A6A15]" />
                 <span>Submit Buying Proposal</span>
               </h3>
               <button
                 onClick={() => setProposalListing(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+                className="text-[#828892] hover:text-[#1C1E21] p-1 rounded-lg cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-3.5 text-xs space-y-1">
-              <p className="text-slate-700">Batch: <strong>{proposalListing.title}</strong></p>
-              <p className="text-slate-700">Farmer: <strong>{proposalListing.producer_name}</strong></p>
-              <p className="text-slate-700">
-                Quality: <strong>{proposalListing.quality_grade || 'Grade B (Standard)'}</strong>
+            <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-3.5 text-xs space-y-1">
+              <p className="text-[#575B62]">Batch: <strong className="text-[#1C1E21]">{proposalListing.title}</strong></p>
+              <p className="text-[#575B62]">Farmer: <strong className="text-[#1C1E21]">{proposalListing.producer_name}</strong></p>
+              <p className="text-[#575B62]">
+                Quality: <strong className="text-[#1C1E21]">{proposalListing.quality_grade || 'Grade B (Standard)'}</strong>
               </p>
             </div>
 
             <form onSubmit={handleCreateProposal} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#1C1E21] mb-1">
                   Your Buying Rate Offer (₹ / Ton)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-amber-700 font-bold">₹</span>
+                  <span className="absolute left-3.5 top-2.5 text-[#9A6A15] font-bold">₹</span>
                   <input
                     type="number"
                     step="50"
@@ -864,17 +918,17 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                     value={proposalPrice}
                     onChange={(e) => setProposalPrice(Number(e.target.value))}
                     required
-                    className="w-full bg-slate-50 border-2 border-amber-400 rounded-xl pl-8 pr-3 py-2 font-bold text-slate-900 focus:outline-none focus:bg-white"
+                    className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl pl-8 pr-3 py-2 font-bold text-[#1C1E21] focus:outline-none focus:bg-white focus:border-[#2D5A43]"
                   />
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[11px] text-[#828892] mt-1">
                   Total estimated for {proposalListing.quantity_in_tons} tons: ₹
                   {Math.round(proposalPrice * proposalListing.quantity_in_tons).toLocaleString('en-IN')}
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-[#575B62] mb-1">
                   Quality Note / Initial Message to Farmer
                 </label>
                 <textarea
@@ -882,12 +936,12 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                   value={proposalNote}
                   onChange={(e) => setProposalNote(e.target.value)}
                   placeholder="e.g. Rate based on inspected photo condition. We will handle trailer logistics."
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:bg-white"
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs focus:outline-none focus:bg-white focus:border-[#2D5A43]"
                 />
               </div>
 
               {proposalFeedback && (
-                <p className="text-xs font-bold text-emerald-800 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+                <p className="text-xs font-bold text-[#1D5E34] bg-[#EDF6F0] p-2.5 rounded-xl border border-[#BCE1C8]">
                   {proposalFeedback}
                 </p>
               )}
@@ -896,16 +950,16 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setProposalListing(null)}
-                  className="px-4 py-2 text-xs text-slate-500 cursor-pointer"
+                  className="px-4 py-2 text-xs text-[#575B62] cursor-pointer hover:text-[#1C1E21]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingProposal}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 cursor-pointer"
+                  className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition disabled:opacity-50 cursor-pointer"
                 >
-                  {isSubmittingProposal ? 'Submitting to Supabase...' : 'Submit Buying Offer'}
+                  {isSubmittingProposal ? 'Submitting to Database...' : 'Submit Buying Offer'}
                 </button>
               </div>
             </form>

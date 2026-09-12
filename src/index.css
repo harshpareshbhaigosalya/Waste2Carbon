@@ -1,43 +1,93 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --bg-canvas: #FAF8F5;
+    --bg-surface: #FFFFFF;
+    --bg-subtle: #F4F0E8;
+    --border-warm: #E7E1D7;
+    --border-warm-light: #F0ECE4;
+    --text-primary: #1C1E21;
+    --text-secondary: #575B62;
+    --text-muted: #828892;
+    --accent-forest: #2D5A43;
+    --accent-forest-dark: #1E4330;
+    --accent-gold: #9A6A15;
+    --accent-gold-light: #FDF6E2;
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #FAF8F5;
+    color: #1C1E21;
     -webkit-font-smoothing: antialiased;
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
     letter-spacing: -0.02em;
+    color: #1C1E21;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Modern Card Glow & Elevation Effects */
+/* Waste2Carbon Warm Elevation & Surfaces */
+.surface-warm {
+  background-color: #FFFFFF;
+  border: 1px solid #E7E1D7;
+  box-shadow: 0 1px 3px rgba(28, 30, 33, 0.03), 0 1px 2px -1px rgba(28, 30, 33, 0.02);
+}
+
+.surface-warm-subtle {
+  background-color: #F8F5EE;
+  border: 1px solid #EBE5DB;
+}
+
 .card-elevation {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+  border: 1px solid #E7E1D7;
+  box-shadow: 0 1px 3px 0 rgba(28, 30, 33, 0.03), 0 1px 2px -1px rgba(28, 30, 33, 0.02);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-elevation:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  border-color: #D6CEC2;
+  box-shadow: 0 8px 24px -4px rgba(28, 30, 33, 0.06), 0 4px 8px -2px rgba(28, 30, 33, 0.03);
 }
 
-/* Golden-Green Premium Gradient */
-.gradient-forest-gold {
-  background: linear-gradient(135deg, #065f46 0%, #047857 50%, #b45309 100%);
+/* Warm Accent Gradients */
+.gradient-forest-warm {
+  background: linear-gradient(135deg, #1E4330 0%, #2D5A43 60%, #3B7256 100%);
 }
 
-.gradient-gold-subtle {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+.gradient-gold-warm {
+  background: linear-gradient(135deg, #FBF6EC 0%, #F5ECDA 100%);
 }
 
-.gradient-emerald-subtle {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+.gradient-admin-warm {
+  background: linear-gradient(135deg, #3B1D28 0%, #4E2836 60%, #2D1A22 100%);
+}
+
+/* Status Indicators */
+.badge-status-estimated {
+  background-color: #FDF6E2;
+  color: #855B09;
+  border: 1px solid #EED99E;
+}
+
+.badge-status-actual {
+  background-color: #EDF5FD;
+  color: #1E568A;
+  border: 1px solid #C5E0F8;
+}
+
+.badge-status-verified {
+  background-color: #EDF6F0;
+  color: #1D5E34;
+  border: 1px solid #BCE1C8;
 }
 
 /* Custom styles for Leaflet map (Light clean style) */
@@ -45,7 +95,7 @@
   width: 100%;
   height: 100%;
   border-radius: 1rem;
-  background-color: #f8fafc;
+  background-color: #FAF8F5;
 }
 
 .leaflet-tile {
@@ -53,15 +103,15 @@
 }
 
 .leaflet-popup-content-wrapper {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border: 1px solid #e2e8f0 !important;
+  background: #FFFFFF !important;
+  color: #1C1E21 !important;
+  border: 1px solid #E7E1D7 !important;
   border-radius: 0.75rem !important;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 10px 25px -5px rgba(28, 30, 33, 0.1) !important;
 }
 
 .leaflet-popup-tip {
-  background: #ffffff !important;
+  background: #FFFFFF !important;
 }
 
 /* Custom scrollbar */
@@ -71,28 +121,40 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #FAF8F5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #D8D2C6;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #BDB5A7;
 }
 
-/* Soft golden-green shimmer */
+/* Soft gold-green shimmer */
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(217, 119, 6, 0.25);
+    box-shadow: 0 0 12px rgba(154, 106, 21, 0.2);
   }
   50% {
-    box-shadow: 0 0 25px rgba(5, 150, 105, 0.35);
+    box-shadow: 0 0 20px rgba(45, 90, 67, 0.25);
   }
 }
 
 .pulse-glow {
   animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+/* Mobile App-like Smooth Scrolling & Safe Area */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
 }

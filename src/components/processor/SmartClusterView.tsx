@@ -42,12 +42,12 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
 
   if (clusters.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto">
-          <Layers className="w-6 h-6" />
+      <div className="bg-[#FFFFFF] border border-[#E7E1D7] rounded-3xl p-10 text-center space-y-3 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-[#F4EDE2] text-[#9A6A15] flex items-center justify-center mx-auto border border-[#E7E1D7]">
+          <Layers className="w-7 h-7" />
         </div>
-        <h3 className="font-bold text-base text-slate-900">No Waste Clusters Detected Yet</h3>
-        <p className="text-xs text-slate-500 max-w-md mx-auto">
+        <h3 className="font-serif font-bold text-lg text-[#1C1E21]">No Waste Clusters Detected Yet</h3>
+        <p className="text-xs text-[#828892] max-w-md mx-auto leading-relaxed">
           As soon as nearby farmers list biomass batches, our GIS clustering algorithm will automatically
           group them into high-efficiency multi-stop pickup routes.
         </p>
@@ -71,49 +71,56 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Overview Banner */}
-      <div className="bg-gradient-to-r from-amber-50 via-emerald-50 to-white border-2 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="bg-gradient-to-r from-[#1E4330] via-[#2D5A43] to-[#1E4330] rounded-3xl p-6 sm:p-7 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="space-y-1.5 relative z-10">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-emerald-950 shadow-xs">
+            <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#D4A34F] text-[#1C1E21] shadow-xs">
               AI Logistics Cluster Engine
             </span>
-            <span className="text-xs font-bold text-emerald-800">
+            <span className="text-xs font-medium text-emerald-200">
               {clusters.length} Optimized Clusters Discovered
             </span>
           </div>
-          <h2 className="text-lg font-black text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
             Bulk Village Clustering & Route Sequencing
           </h2>
-          <p className="text-xs text-slate-600 max-w-xl">
-            Solves fragmented pickups: Pick up waste in bulk from multiple nearby farms in a single route.
-            Save up to 40% on diesel logistics while offering higher purchase rates to local farmers.
+          <p className="text-xs text-emerald-100/90 max-w-xl leading-relaxed">
+            Eliminates fragmented single-batch trips. Aggregates neighboring farms into consolidated bulk payloads,
+            saving up to 40% on diesel logistics while boosting farmer payouts.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="bg-white border border-amber-200 rounded-2xl px-4 py-2.5 text-right shadow-xs">
-            <span className="text-[10px] text-slate-500 uppercase font-bold block">
-              Total Bulk Feedstock Available
+        <div className="flex items-center gap-3 shrink-0 relative z-10">
+          <div className="bg-[#FAF8F5] text-[#1C1E21] border border-[#E7E1D7] rounded-2xl px-5 py-3 text-right shadow-sm">
+            <span className="text-[10px] text-[#828892] uppercase font-bold tracking-wider block">
+              Total Bulk Feedstock
             </span>
-            <span className="text-xl font-black text-emerald-800">
-              {clusters.reduce((acc, c) => acc + c.totalQuantityTons, 0).toFixed(1)} Tons
+            <span className="text-2xl font-black text-[#2D5A43] font-mono">
+              {clusters.reduce((acc, c) => acc + c.totalQuantityTons, 0).toFixed(1)}{' '}
+              <span className="text-xs font-normal text-[#828892]">Tons</span>
             </span>
           </div>
         </div>
       </div>
 
       {/* Main Grid: Clusters Selection List & Route Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Cluster Cards (5 cols) */}
-        <div className="lg:col-span-5 space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block px-1">
-            Available Aggregation Hubs
-          </span>
+        <div className="lg:col-span-5 space-y-3.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#828892]">
+              Aggregation Hubs ({clusters.length})
+            </span>
+            <span className="text-[11px] text-[#9A6A15] font-semibold">Select hub to inspect route</span>
+          </div>
 
           {clusters.map((cluster) => {
             const isSelected = currentActiveCluster?.id === cluster.id;
+            const targetPayload = 10;
+            const payloadPct = Math.min(100, Math.round((cluster.totalQuantityTons / targetPayload) * 100));
+
             return (
               <div
                 key={cluster.id}
@@ -121,47 +128,77 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
                   setSelectedCluster(cluster);
                   setScheduleDate(cluster.recommendedDate);
                 }}
-                className={`p-4 rounded-2xl border-2 transition cursor-pointer relative shadow-xs ${
+                className={`p-4 sm:p-5 rounded-2xl border transition cursor-pointer relative shadow-xs ${
                   isSelected
-                    ? 'border-emerald-600 bg-emerald-50/80 shadow-md ring-2 ring-emerald-500/20'
-                    : 'border-slate-200 bg-white hover:border-amber-300'
+                    ? 'border-[#2D5A43] bg-[#FAF8F5] ring-2 ring-[#2D5A43]/15 shadow-sm'
+                    : 'border-[#E7E1D7] bg-[#FFFFFF] hover:border-[#D4A34F]/60'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase bg-amber-100 text-amber-900 border border-amber-300">
-                      {cluster.radiusKm} km radius hub
-                    </span>
-                    <h3 className="font-bold text-sm text-slate-900 mt-1">{cluster.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#F4EDE2] text-[#9A6A15] border border-[#E7E1D7]">
+                        {cluster.radiusKm} km radius hub
+                      </span>
+                      <span className="text-[11px] font-medium text-[#828892]">
+                        {cluster.producersCount} farm stop{cluster.producersCount > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <h3 className="font-serif font-bold text-base text-[#1C1E21] mt-1.5">
+                      {cluster.name}
+                    </h3>
                   </div>
-                  <ChevronRight className={`w-4 h-4 transition ${isSelected ? 'text-emerald-700 translate-x-0.5' : 'text-slate-400'}`} />
+                  <ChevronRight
+                    className={`w-4 h-4 transition ${
+                      isSelected ? 'text-[#2D5A43] translate-x-1' : 'text-[#828892]'
+                    }`}
+                  />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-200/80 text-center text-xs">
+                {/* Payload Volume Progress Bar */}
+                <div className="mt-3 pt-3 border-t border-[#E7E1D7]/70 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[11px] font-semibold text-[#828892]">Payload Capacity:</span>
+                    <span className="font-mono text-xs font-bold text-[#1C1E21]">
+                      {cluster.totalQuantityTons.toFixed(1)} / {targetPayload}.0 tons ·{' '}
+                      <span className="text-[#2D5A43]">{payloadPct}%</span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#E7E1D7] rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        payloadPct >= 80 ? 'bg-[#2D5A43]' : payloadPct >= 50 ? 'bg-[#9A6A15]' : 'bg-[#D4A34F]'
+                      }`}
+                      style={{ width: `${payloadPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-[#E7E1D7]/70 text-center text-xs">
                   <div>
-                    <span className="text-[10px] text-slate-500 block">Total Biomass</span>
-                    <span className="font-black text-slate-900">{cluster.totalQuantityTons} t</span>
+                    <span className="text-[10px] text-[#828892] block">Biomass</span>
+                    <span className="font-black text-[#1C1E21] font-mono">{cluster.totalQuantityTons} t</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-500 block">Gross Value</span>
-                    <span className="font-black text-emerald-800">
+                    <span className="text-[10px] text-[#828892] block">Gross Value</span>
+                    <span className="font-black text-[#2D5A43] font-mono">
                       ₹{(cluster.totalEconomicValueINR / 1000).toFixed(0)}k
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-500 block">Generators</span>
-                    <span className="font-black text-amber-700">{cluster.producersCount} Farms</span>
+                    <span className="text-[10px] text-[#828892] block">Fuel Saved</span>
+                    <span className="font-black text-[#9A6A15] font-mono">{cluster.dieselSavedLiters} L</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-2.5 pt-2 text-[11px] text-slate-500">
+                <div className="flex items-center justify-between mt-2.5 pt-2 text-[11px] text-[#828892]">
                   <span className="flex items-center gap-1">
-                    <Fuel className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>~{cluster.dieselSavedLiters} L Diesel Saved</span>
+                    <Fuel className="w-3.5 h-3.5 text-[#2D5A43]" />
+                    <span>~₹{(cluster.dieselSavedLiters * 92).toFixed(0)} Saved</span>
                   </span>
-                  <span className="flex items-center gap-1 font-semibold text-slate-700">
-                    <Clock className="w-3 h-3 text-slate-400" />
-                    <span>Earliest: {cluster.recommendedDate}</span>
+                  <span className="flex items-center gap-1 font-medium text-[#1C1E21]">
+                    <Clock className="w-3.5 h-3.5 text-[#828892]" />
+                    <span>Target Date: {cluster.recommendedDate}</span>
                   </span>
                 </div>
               </div>
@@ -171,41 +208,41 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
 
         {/* Right Column: Selected Cluster Route Detail & Scheduling (7 cols) */}
         {currentActiveCluster && (
-          <div className="lg:col-span-7 bg-white border-2 border-amber-200 rounded-3xl p-5 sm:p-6 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+          <div className="lg:col-span-7 bg-[#FFFFFF] border border-[#E7E1D7] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E7E1D7] pb-4">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  Optimized TSP Delivery Sequence
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#9A6A15] bg-[#F4EDE2] px-2.5 py-0.5 rounded-full border border-[#E7E1D7]">
+                  Optimized TSP Waypoint Sequence
                 </span>
-                <h3 className="font-black text-lg text-slate-900 mt-1">
+                <h3 className="font-serif font-bold text-xl text-[#1C1E21] mt-1.5">
                   {currentActiveCluster.name}
                 </h3>
               </div>
 
               <div className="flex items-center gap-2 text-xs">
-                <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl font-bold">
+                <span className="bg-[#FAF8F5] text-[#2D5A43] border border-[#E7E1D7] px-3.5 py-1.5 rounded-xl font-bold font-mono">
                   {currentActiveCluster.estimatedTotalRouteDistanceKm} km Round Trip
                 </span>
               </div>
             </div>
 
             {/* Smart Route Multi-Stop Sequence */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Navigation className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Multi-Stop Collection Route (Door-to-Door Waypoints)</span>
+            <div className="space-y-3">
+              <span className="text-xs font-bold text-[#1C1E21] flex items-center gap-1.5">
+                <Navigation className="w-4 h-4 text-[#2D5A43]" />
+                <span>Door-to-Door Waypoints ({currentActiveCluster.optimizedRouteSequence.length} Stops)</span>
               </span>
 
-              <div className="space-y-2 relative pl-6 border-l-2 border-emerald-400 ml-3 py-1">
+              <div className="space-y-2.5 relative pl-6 border-l-2 border-[#2D5A43]/40 ml-3 py-1">
                 {/* Starting Point (Plant) */}
                 <div className="relative">
-                  <div className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-emerald-700 border-2 border-white shadow-xs" />
-                  <div className="bg-slate-50 p-2.5 rounded-xl text-xs flex items-center justify-between border border-slate-200">
+                  <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-[#2D5A43] border-2 border-white shadow-xs" />
+                  <div className="bg-[#FAF8F5] p-3 rounded-2xl text-xs flex items-center justify-between border border-[#E7E1D7]">
                     <div>
-                      <span className="font-bold text-slate-900">Start: Your Conversion Plant</span>
-                      <p className="text-[10px] text-slate-500">{facilityLocation.name}</p>
+                      <span className="font-bold text-[#1C1E21]">Start: Your Processing Facility</span>
+                      <p className="text-[11px] text-[#828892] mt-0.5">{facilityLocation.name}</p>
                     </div>
-                    <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">
+                    <span className="text-[10px] bg-[#E7E1D7] text-[#1C1E21] px-2.5 py-0.5 rounded-full font-bold">
                       Depot (0 km)
                     </span>
                   </div>
@@ -214,26 +251,26 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
                 {/* Waypoints */}
                 {currentActiveCluster.optimizedRouteSequence.map((point, idx) => (
                   <div key={point.id} className="relative">
-                    <div className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-amber-500 border-2 border-white shadow-xs" />
-                    <div className="bg-[#fcfbf7] p-2.5 rounded-xl text-xs flex items-center justify-between border border-amber-200/80 hover:border-amber-400 transition">
+                    <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-[#D4A34F] border-2 border-white shadow-xs" />
+                    <div className="bg-[#FAF8F5] p-3 rounded-2xl text-xs flex items-center justify-between border border-[#E7E1D7] hover:border-[#D4A34F] transition">
                       <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black flex items-center justify-center">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-[#F4EDE2] text-[#9A6A15] text-[10px] font-black flex items-center justify-center border border-[#E7E1D7]">
                             {idx + 1}
                           </span>
-                          <span className="font-bold text-slate-900">{point.producer_name}</span>
-                          <span className="text-[10px] text-slate-400">· {point.producer_phone}</span>
+                          <span className="font-bold text-[#1C1E21]">{point.producer_name}</span>
+                          <span className="text-[10px] text-[#828892]">· {point.producer_phone}</span>
                         </div>
-                        <p className="text-[10px] text-slate-500 mt-0.5 truncate max-w-xs">
+                        <p className="text-[11px] text-[#828892] mt-1 truncate max-w-xs sm:max-w-sm">
                           {point.location_name}
                         </p>
                       </div>
 
-                      <div className="text-right">
-                        <span className="font-black text-emerald-800 block text-xs">
+                      <div className="text-right shrink-0">
+                        <span className="font-black text-[#2D5A43] block text-xs font-mono">
                           +{point.quantity_tons} Tons
                         </span>
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[10px] text-[#828892]">
                           {point.waste_subcategory}
                         </span>
                       </div>
@@ -243,11 +280,14 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
 
                 {/* Return Point (Plant) */}
                 <div className="relative">
-                  <div className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-emerald-700 border-2 border-white shadow-xs" />
-                  <div className="bg-slate-50 p-2 rounded-xl text-xs flex items-center justify-between border border-slate-200 text-slate-600">
-                    <span>Return to Facility & Unload</span>
-                    <span className="text-[10px] font-bold">
-                      Total: {currentActiveCluster.totalQuantityTons} Tons Collected
+                  <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-[#2D5A43] border-2 border-white shadow-xs" />
+                  <div className="bg-[#FAF8F5] p-3 rounded-2xl text-xs flex items-center justify-between border border-[#E7E1D7] text-[#828892]">
+                    <div>
+                      <span className="font-bold text-[#1C1E21]">Return: Facility Unloading Bay</span>
+                      <p className="text-[11px] text-[#828892]">Direct weighbridge intake & moisture verification</p>
+                    </div>
+                    <span className="text-[11px] font-bold text-[#2D5A43] font-mono">
+                      {currentActiveCluster.totalQuantityTons} Tons Payload
                     </span>
                   </div>
                 </div>
@@ -255,38 +295,38 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
             </div>
 
             {/* Schedule & Dispatch Action */}
-            <div className="bg-amber-50/80 border border-amber-300 rounded-2xl p-4 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <span className="text-xs font-bold text-amber-900 block">
-                    Lock Date & Dispatch Cluster Alert
+                  <span className="text-xs font-bold text-[#1C1E21] block">
+                    Lock Collection Date & Dispatch Route Notice
                   </span>
-                  <p className="text-[11px] text-amber-800/90">
-                    Notifies all {currentActiveCluster.producersCount} sellers simultaneously with your truck arrival date.
+                  <p className="text-[11px] text-[#828892] mt-0.5">
+                    Notifies all {currentActiveCluster.producersCount} sellers simultaneously with your verified pickup schedule.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <input
                     type="date"
                     value={scheduleDate}
                     onChange={(e) => setScheduleDate(e.target.value)}
-                    className="bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
+                    className="bg-[#FFFFFF] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs font-bold text-[#1C1E21] focus:outline-none focus:border-[#2D5A43]"
                   />
                   <button
                     onClick={() => handleConfirmSchedule(currentActiveCluster)}
                     disabled={isScheduling}
-                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+                    className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>{isScheduling ? 'Scheduling...' : 'Confirm Date & Notify All'}</span>
+                    <span>{isScheduling ? 'Scheduling...' : 'Lock & Notify'}</span>
                   </button>
                 </div>
               </div>
 
               {scheduleSuccess && (
-                <div className="bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs p-2.5 rounded-xl font-bold flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-700 shrink-0" />
+                <div className="bg-[#F4EDE2] border border-[#D4A34F] text-[#1C1E21] text-xs p-3 rounded-xl font-bold flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#2D5A43] shrink-0" />
                   <span>{scheduleSuccess}</span>
                 </div>
               )}

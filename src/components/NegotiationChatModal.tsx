@@ -125,22 +125,22 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white border-2 border-amber-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#1C1E21]/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-[#FFFFFF] border border-[#E7E1D7] rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-amber-100 bg-gradient-to-r from-emerald-50 via-amber-50 to-white">
-          <div className="space-y-0.5">
+        <div className="flex items-center justify-between p-5 border-b border-[#E7E1D7] bg-[#FAF8F5]">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
-                Quality & Price Negotiation
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#F4EDE2] text-[#9A6A15] border border-[#E7E1D7]">
+                Feedstock Negotiation
               </span>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                   request.negotiation_status === 'agreed'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    ? 'bg-[#FAF8F5] text-[#2D5A43] border border-[#2D5A43]/40'
                     : request.negotiation_status === 'rejected'
-                    ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                    : 'bg-amber-100 text-amber-900 border border-amber-300'
+                    ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                    : 'bg-[#F4EDE2] text-[#9A6A15] border border-[#D4A34F]'
                 }`}
               >
                 {request.negotiation_status === 'agreed'
@@ -150,88 +150,88 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
                   : 'In Negotiation'}
               </span>
             </div>
-            <h3 className="font-black text-lg text-slate-900">{request.listing_title}</h3>
-            <p className="text-xs text-slate-500">
-              Quantity: <strong>{request.quantity_tons} Tons</strong> · Farmer:{' '}
-              <strong>{request.producer_name}</strong> · Buyer: <strong>{request.processor_name}</strong>
+            <h3 className="font-serif font-bold text-lg text-[#1C1E21]">{request.listing_title}</h3>
+            <p className="text-xs text-[#828892]">
+              Payload: <strong className="text-[#1C1E21] font-mono">{request.quantity_tons} Tons</strong> · Seller:{' '}
+              <strong className="text-[#1C1E21]">{request.producer_name}</strong> · Facility: <strong className="text-[#1C1E21]">{request.processor_name}</strong>
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+            className="p-2 rounded-xl text-[#828892] hover:text-[#1C1E21] hover:bg-[#FAF8F5] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Quality Inspection Photo Card */}
-        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-center gap-4">
+        <div className="p-4 sm:p-5 bg-[#FAF8F5] border-b border-[#E7E1D7] flex flex-col sm:flex-row items-center gap-4">
           {request.listing_photo_url ? (
             <div className="relative group shrink-0">
               <img
                 src={request.listing_photo_url}
                 alt="Waste Quality Inspection"
-                className="w-28 h-24 sm:w-32 sm:h-24 object-cover rounded-2xl border-2 border-amber-300 shadow-sm cursor-pointer group-hover:opacity-90 transition"
+                className="w-28 h-24 sm:w-32 sm:h-24 object-cover rounded-2xl border border-[#E7E1D7] shadow-xs cursor-pointer group-hover:opacity-95 transition"
                 onClick={() => setShowPhotoZoom(true)}
               />
               <button
                 type="button"
                 onClick={() => setShowPhotoZoom(true)}
-                className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-2xl opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1 cursor-pointer"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition text-white text-xs font-bold gap-1 cursor-pointer"
               >
                 <Maximize2 className="w-4 h-4" />
                 <span>Zoom</span>
               </button>
             </div>
           ) : (
-            <div className="w-28 h-24 sm:w-32 sm:h-24 rounded-2xl bg-amber-100/60 border-2 border-dashed border-amber-300 flex flex-col items-center justify-center text-amber-800 shrink-0 text-center p-2">
-              <Camera className="w-6 h-6 opacity-40 mb-1" />
+            <div className="w-28 h-24 sm:w-32 sm:h-24 rounded-2xl bg-[#F4EDE2] border border-dashed border-[#D4A34F] flex flex-col items-center justify-center text-[#9A6A15] shrink-0 text-center p-2">
+              <Camera className="w-6 h-6 opacity-60 mb-1" />
               <span className="text-[10px] font-bold">No Photo Attached</span>
             </div>
           )}
 
           <div className="flex-1 space-y-1.5 text-xs">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-slate-700">Quality Grade:</span>
+              <span className="font-bold text-[#1C1E21]">Verified Quality Grade:</span>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[11px] font-black ${
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                   request.quality_grade?.includes('Grade A')
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    ? 'bg-[#FAF8F5] text-[#2D5A43] border border-[#2D5A43]/40'
                     : request.quality_grade?.includes('Grade C')
-                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                    : 'bg-sky-100 text-sky-800 border border-sky-300'
+                    ? 'bg-[#F4EDE2] text-[#9A6A15] border border-[#D4A34F]'
+                    : 'bg-[#FAF8F5] text-[#1C1E21] border border-[#E7E1D7]'
                 }`}
               >
-                {request.quality_grade || 'Grade B (Standard)'}
+                {request.quality_grade || 'Grade B (Standard Commercial)'}
               </span>
             </div>
 
-            <p className="text-slate-600 text-[11px] leading-relaxed">
+            <p className="text-[#828892] text-[11px] leading-relaxed">
               {isProcessor ? (
                 <span>
-                  Inspect the photo above to verify moisture and impurities. If quality is substandard,
-                  propose a lower buying rate below with your explanation.
+                  Inspect the physical batch photograph above. If moisture or foreign material warrants a rate revision,
+                  propose a transparent counter-offer with your rationale.
                 </span>
               ) : (
                 <span>
-                  Your waste photo is displayed to the buyer plant. You can defend your pricing or negotiate
-                  a mutually profitable rate here.
+                  Your batch photo provides visual proof to the industrial buyer. You can clarify storage condition
+                  or counter with your minimum feasible price.
                 </span>
               )}
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 pt-1 text-slate-700">
+            <div className="flex flex-wrap items-center gap-3 pt-1 text-[#1C1E21]">
               <span>
-                Current Agreed Rate:{' '}
-                <strong className="text-emerald-700 font-black text-sm">
+                Baseline Offer:{' '}
+                <strong className="text-[#2D5A43] font-mono font-bold text-sm">
                   ₹{request.proposed_price_per_ton.toLocaleString('en-IN')}/ton
                 </strong>
               </span>
-              <span>·</span>
+              <span className="text-[#E7E1D7]">·</span>
               <span>
-                Total Batch Value:{' '}
-                <strong className="text-amber-800 font-bold">
+                Batch Total:{' '}
+                <strong className="text-[#9A6A15] font-mono font-bold">
                   ₹{Math.round(request.proposed_price_per_ton * request.quantity_tons).toLocaleString('en-IN')}
                 </strong>
               </span>
@@ -241,16 +241,16 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
 
         {/* Action Banner if a Counter-Offer is awaiting current user decision */}
         {isAwaitingMyResponse && request.status === 'pending' && (
-          <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 px-4 py-3 border-b border-amber-600 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-2 text-xs">
-              <ArrowUpDown className="w-5 h-5 text-slate-950 shrink-0" />
+          <div className="bg-[#F4EDE2] text-[#1C1E21] px-5 py-3.5 border-b border-[#D4A34F] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2.5 text-xs">
+              <ArrowUpDown className="w-5 h-5 text-[#9A6A15] shrink-0" />
               <div>
-                <p className="font-black text-sm">
-                  {isProducer ? 'Buyer Plant Proposed:' : 'Farmer Asked For:'} ₹
-                  {pendingOfferPrice.toLocaleString('en-IN')}/ton
+                <p className="font-bold text-sm">
+                  {isProducer ? 'Processing Plant Countered:' : 'Producer Requested:'}{' '}
+                  <span className="font-mono text-[#2D5A43]">₹{pendingOfferPrice.toLocaleString('en-IN')}/ton</span>
                 </p>
-                <p className="text-[11px] font-semibold text-slate-900">
-                  Total for {request.quantity_tons} tons: ₹
+                <p className="text-[11px] text-[#828892]">
+                  Total value for {request.quantity_tons} tons: ₹
                   {Math.round(pendingOfferPrice * request.quantity_tons).toLocaleString('en-IN')}
                 </p>
               </div>
@@ -261,17 +261,17 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
                 type="button"
                 onClick={handleAccept}
                 disabled={isSending}
-                className="bg-emerald-800 hover:bg-emerald-900 text-white font-black text-xs px-4 py-2 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Check className="w-4 h-4" />
-                <span>Accept Offer (₹{pendingOfferPrice.toLocaleString('en-IN')}/t)</span>
+                <span>Accept Rate (₹{pendingOfferPrice.toLocaleString('en-IN')}/t)</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleDecline}
                 disabled={isSending}
-                className="bg-slate-900/80 hover:bg-slate-900 text-white font-bold text-xs px-3 py-2 rounded-xl transition cursor-pointer disabled:opacity-50"
+                className="bg-[#FFFFFF] hover:bg-rose-50 text-rose-700 border border-[#E7E1D7] font-bold text-xs px-3.5 py-2 rounded-xl transition cursor-pointer disabled:opacity-50"
               >
                 Decline
               </button>
@@ -280,7 +280,7 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
         )}
 
         {/* Message Thread Container */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 bg-[#fcfbf7]/60">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 bg-[#FAF8F5]/60">
           {messages.map((msg, index) => {
             const isMe = msg.sender_id === currentUser?.id;
             const isMsgProducer = msg.sender_role === 'producer';
@@ -293,15 +293,15 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
                 }`}
               >
                 {/* Sender tag */}
-                <div className="flex items-center gap-1 text-[10px] text-slate-500 mb-1 px-1">
+                <div className="flex items-center gap-1 text-[10px] text-[#828892] mb-1 px-1">
                   {isMsgProducer ? (
-                    <User className="w-3 h-3 text-emerald-700" />
+                    <User className="w-3 h-3 text-[#2D5A43]" />
                   ) : (
-                    <Factory className="w-3 h-3 text-amber-700" />
+                    <Factory className="w-3 h-3 text-[#9A6A15]" />
                   )}
-                  <span className="font-bold text-slate-700">{msg.sender_name}</span>
-                  <span className="opacity-70">
-                    ({isMsgProducer ? 'Farmer / Producer' : 'Processing Plant'})
+                  <span className="font-bold text-[#1C1E21]">{msg.sender_name}</span>
+                  <span className="opacity-75">
+                    ({isMsgProducer ? 'Waste Producer' : 'Conversion Facility'})
                   </span>
                 </div>
 
@@ -309,19 +309,17 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
                 <div
                   className={`rounded-2xl p-3.5 space-y-1.5 shadow-xs text-xs sm:text-sm ${
                     isMe
-                      ? 'bg-gradient-to-tr from-emerald-800 to-emerald-700 text-white rounded-br-xs'
-                      : isMsgProducer
-                      ? 'bg-white border border-emerald-200 text-slate-800 rounded-bl-xs'
-                      : 'bg-white border border-amber-200 text-slate-800 rounded-bl-xs'
+                      ? 'bg-[#2D5A43] text-white rounded-br-xs'
+                      : 'bg-[#FFFFFF] border border-[#E7E1D7] text-[#1C1E21] rounded-bl-xs'
                   }`}
                 >
                   {/* Price Tag if offer made */}
                   {msg.offered_price && (
                     <div
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black mb-1 ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black mb-1 font-mono ${
                         isMe
-                          ? 'bg-emerald-950/40 text-amber-300 border border-emerald-600'
-                          : 'bg-amber-100 text-amber-950 border border-amber-300'
+                          ? 'bg-black/20 text-[#D4A34F] border border-white/20'
+                          : 'bg-[#F4EDE2] text-[#9A6A15] border border-[#D4A34F]'
                       }`}
                     >
                       <ArrowUpDown className="w-3.5 h-3.5" />
@@ -334,7 +332,7 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
 
                   <p className="leading-relaxed whitespace-pre-wrap">{msg.message}</p>
 
-                  <div className={`text-[9px] pt-1 ${isMe ? 'text-emerald-200' : 'text-slate-400'} text-right`}>
+                  <div className={`text-[9px] pt-1 ${isMe ? 'text-emerald-100' : 'text-[#828892]'} text-right`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -346,30 +344,30 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
 
         {/* Feedback / notification toast */}
         {feedback && (
-          <div className="bg-emerald-50 border-t border-emerald-200 text-emerald-800 text-xs px-4 py-2 flex items-center gap-2 font-bold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <div className="bg-[#FAF8F5] border-t border-[#E7E1D7] text-[#2D5A43] text-xs px-4 py-2.5 flex items-center gap-2 font-bold">
+            <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
             <span>{feedback}</span>
           </div>
         )}
 
         {/* Counter-Offer & Chat Input Bar */}
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white space-y-3">
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-[#E7E1D7] bg-[#FFFFFF] space-y-3">
           {/* Quick Price Adjustments & Input */}
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
-              <label className="font-bold text-slate-700 flex items-center gap-1">
+              <label className="font-bold text-[#1C1E21] flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={includePriceUpdate}
                   onChange={(e) => setIncludePriceUpdate(e.target.checked)}
-                  className="rounded text-emerald-600 focus:ring-emerald-500"
+                  className="rounded text-[#2D5A43] focus:ring-[#2D5A43]"
                 />
                 <span>Attach Counter Offer:</span>
               </label>
 
               {includePriceUpdate && (
                 <div className="relative">
-                  <span className="absolute left-2.5 top-1.5 font-bold text-amber-700 text-xs">₹</span>
+                  <span className="absolute left-2.5 top-1.5 font-bold text-[#9A6A15] text-xs">₹</span>
                   <input
                     type="number"
                     step="50"
@@ -377,9 +375,9 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
                     max="20000"
                     value={counterPrice}
                     onChange={(e) => setCounterPrice(Number(e.target.value))}
-                    className="w-28 pl-6 pr-2 py-1 bg-slate-50 border border-amber-300 rounded-lg text-xs font-black text-slate-900 focus:outline-none focus:bg-white"
+                    className="w-28 pl-6 pr-2 py-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg text-xs font-mono font-bold text-[#1C1E21] focus:outline-none focus:border-[#2D5A43]"
                   />
-                  <span className="text-[10px] text-slate-500 ml-1">/ton</span>
+                  <span className="text-[10px] text-[#828892] ml-1">/ton</span>
                 </div>
               )}
             </div>
@@ -390,30 +388,30 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
                 <button
                   type="button"
                   onClick={() => applyPriceDelta(-200)}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 rounded-md bg-[#FAF8F5] hover:bg-[#F4EDE2] text-[#828892] hover:text-[#1C1E21] border border-[#E7E1D7] text-[10px] font-medium transition cursor-pointer"
                 >
                   -₹200 (Moisture)
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPriceDelta(-100)}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 rounded-md bg-[#FAF8F5] hover:bg-[#F4EDE2] text-[#828892] hover:text-[#1C1E21] border border-[#E7E1D7] text-[10px] font-medium transition cursor-pointer"
                 >
                   -₹100
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPriceDelta(100)}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 rounded-md bg-[#FAF8F5] hover:bg-[#F4EDE2] text-[#828892] hover:text-[#1C1E21] border border-[#E7E1D7] text-[10px] font-medium transition cursor-pointer"
                 >
                   +₹100
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPriceDelta(200)}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 rounded-md bg-[#FAF8F5] hover:bg-[#F4EDE2] text-[#828892] hover:text-[#1C1E21] border border-[#E7E1D7] text-[10px] font-medium transition cursor-pointer"
                 >
-                  +₹200 (Pure)
+                  +₹200 (Pure / Dry)
                 </button>
               </div>
             )}
@@ -427,16 +425,16 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
               onChange={(e) => setMessageText(e.target.value)}
               placeholder={
                 isProcessor
-                  ? 'e.g., Photo shows high moisture, we offer ₹1,900/t to cover drying costs...'
-                  : 'e.g., The straw has been baled and dried under shed, lowest acceptable is ₹2,700/t...'
+                  ? 'e.g., Photo shows high moisture, proposing ₹1,900/t to factor drying costs...'
+                  : 'e.g., Stubble is baled and covered under shed, lowest acceptable is ₹2,700/t...'
               }
-              className="flex-1 bg-slate-50 border border-slate-300 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
+              className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white transition"
             />
 
             <button
               type="submit"
               disabled={isSending || (!messageText.trim() && !includePriceUpdate)}
-              className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-2.5 rounded-2xl shadow-md transition disabled:opacity-40 flex items-center gap-1.5 text-xs shrink-0 cursor-pointer"
+              className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold px-5 py-2.5 rounded-2xl shadow-xs transition disabled:opacity-40 flex items-center gap-1.5 text-xs shrink-0 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Send</span>

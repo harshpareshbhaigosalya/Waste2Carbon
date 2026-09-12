@@ -207,15 +207,15 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-emerald-700" />
+        <label className="block text-xs font-bold uppercase tracking-wider text-[#1C1E21] flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-[#2D5A43]" />
           <span>{label}</span>
         </label>
         <button
           type="button"
           onClick={handleUseGPS}
           disabled={isGeolocating}
-          className="text-[11px] font-bold text-emerald-800 hover:text-emerald-900 flex items-center gap-1 bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-lg transition disabled:opacity-50"
+          className="text-[11px] font-bold text-[#2D5A43] hover:text-[#1E4330] flex items-center gap-1 bg-[#FAF8F5] border border-[#2D5A43]/30 px-2.5 py-1 rounded-xl transition disabled:opacity-50 cursor-pointer"
         >
           {isGeolocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />}
           <span>{isGeolocating ? 'Detecting GPS...' : 'Use Current GPS'}</span>
@@ -225,8 +225,8 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       {/* Structured Address Form Inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="sm:col-span-2">
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
-            Street Address / Farm Gate / Industrial Plot No. <span className="text-emerald-700">*</span>
+          <label className="block text-[11px] font-medium text-[#828892] mb-1">
+            Street Address / Farm Gate / Industrial Plot No. <span className="text-[#2D5A43]">*</span>
           </label>
           <input
             type="text"
@@ -234,13 +234,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             onChange={(e) => handleFieldChange('street_address', e.target.value)}
             required
             placeholder="e.g. Farm Gate 3, Canal Road, Plot 42"
-            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+            className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white transition"
           />
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
-            City / Town / District <span className="text-emerald-700">*</span>
+          <label className="block text-[11px] font-medium text-[#828892] mb-1">
+            City / Town / District <span className="text-[#2D5A43]">*</span>
           </label>
           <input
             type="text"
@@ -248,13 +248,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             onChange={(e) => handleFieldChange('city', e.target.value)}
             required
             placeholder="e.g. Karnal, Nashik, Ludhiana"
-            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+            className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white transition"
           />
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
-            State / Region <span className="text-emerald-700">*</span>
+          <label className="block text-[11px] font-medium text-[#828892] mb-1">
+            State / Region <span className="text-[#2D5A43]">*</span>
           </label>
           <input
             type="text"
@@ -262,13 +262,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             onChange={(e) => handleFieldChange('state', e.target.value)}
             required
             placeholder="e.g. Haryana, Maharashtra, Punjab"
-            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+            className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white transition"
           />
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
-            Pincode / Postal Code <span className="text-emerald-700">*</span>
+          <label className="block text-[11px] font-medium text-[#828892] mb-1">
+            Pincode / Postal Code <span className="text-[#2D5A43]">*</span>
           </label>
           <input
             type="text"
@@ -276,48 +276,48 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             onChange={(e) => handleFieldChange('pincode', e.target.value)}
             required
             placeholder="e.g. 132001"
-            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+            className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white transition"
           />
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
+          <label className="block text-[11px] font-medium text-[#828892] mb-1">
             Pin Coordinates (GPS)
           </label>
-          <div className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-emerald-800 flex items-center justify-between">
+          <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs font-mono text-[#2D5A43] flex items-center justify-between">
             <span>{value.latitude?.toFixed(4)}° N, {value.longitude?.toFixed(4)}° E</span>
-            <span className="text-[10px] text-slate-500 font-sans">Auto-pinned</span>
+            <span className="text-[10px] text-[#828892] font-sans font-medium">Auto-pinned</span>
           </div>
         </div>
       </div>
 
       {/* Map Search & Pin-Drop Container */}
-      <div className="space-y-2 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200">
+      <div className="space-y-2.5 bg-[#FAF8F5] p-3.5 rounded-2xl border border-[#E7E1D7]">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] font-bold text-slate-700">
-            Pin Exact Location on Map (Drag pin or click map)
+          <span className="text-[11px] font-bold text-[#1C1E21]">
+            Interactive Geo-Pin (Drag pin or click map to recalibrate)
           </span>
-          <span className="text-[10px] text-slate-500">Click anywhere to move pin</span>
+          <span className="text-[10px] text-[#828892]">Click anywhere to move pin</span>
         </div>
 
         {/* Place Search Input */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[#828892]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search city, village, landmark or pincode..."
-              className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+              className="w-full bg-[#FFFFFF] border border-[#E7E1D7] rounded-xl pl-9 pr-3 py-2 text-xs text-[#1C1E21] focus:outline-none focus:border-[#2D5A43]"
             />
           </div>
           <button
             type="button"
             onClick={() => handleSearch()}
             disabled={isSearching || !searchQuery.trim()}
-            className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition disabled:opacity-50 flex items-center gap-1 shrink-0"
+            className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-4 py-2 rounded-xl transition disabled:opacity-50 flex items-center gap-1 shrink-0 cursor-pointer"
           >
             {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Locate'}
           </button>
@@ -328,7 +328,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         )}
 
         {/* Leaflet Map */}
-        <div className="w-full h-44 rounded-xl overflow-hidden border border-slate-300 relative z-0 mt-2 shadow-inner">
+        <div className="w-full h-44 rounded-xl overflow-hidden border border-[#E7E1D7] relative z-0 mt-2 shadow-inner">
           <MapContainer
             center={currentPos}
             zoom={12}

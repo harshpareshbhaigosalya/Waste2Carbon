@@ -238,17 +238,17 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white border-2 border-amber-200/90 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#1C1E21]/50 backdrop-blur-xs animate-in fade-in duration-200 selection:bg-[#2D5A43] selection:text-white">
+      <div className="relative w-full max-w-2xl bg-white border border-[#E7E1D7] rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-amber-100 bg-gradient-to-r from-emerald-50 via-amber-50 to-white">
+        <div className="flex items-center justify-between p-5 border-b border-[#E7E1D7] bg-[#FAF8F5]">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-700 to-emerald-500 text-white flex items-center justify-center font-bold shadow-md">
-              <Sprout className="w-5 h-5 text-amber-300" />
+            <div className="w-10 h-10 rounded-xl bg-[#2D5A43] text-white flex items-center justify-center font-bold shadow-2xs">
+              <Sprout className="w-5 h-5 text-[#E5C378]" />
             </div>
             <div>
-              <h3 className="font-black text-lg text-slate-900">List Organic Waste Batch</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="font-black text-lg text-[#1C1E21]">List Organic Waste Batch</h3>
+              <p className="text-xs text-[#575B62]">
                 Upload actual quality photos and negotiate optimal rates with verified plants
               </p>
             </div>
@@ -258,60 +258,60 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
               stopLiveCamera();
               onClose();
             }}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+            className="p-1.5 rounded-xl text-[#828892] hover:text-[#1C1E21] hover:bg-[#F8F5EE] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-5 sm:p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="overflow-y-auto p-5 sm:p-6 space-y-6">
           {errorMessage && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-start gap-2">
+            <div className="bg-[#FBEAE9] border border-[#F5C2C0] text-[#9E2A2B] text-xs p-3 rounded-xl flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {camError && (
-            <div className="bg-amber-50 border border-amber-300 text-amber-900 text-xs p-3 rounded-xl flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
+            <div className="bg-[#FDF6E2] border border-[#EED99E] text-[#855B09] text-xs p-3 rounded-xl flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#9A6A15]" />
               <span>{camError}</span>
             </div>
           )}
 
           {successNotice && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs p-3 rounded-xl flex items-center gap-2 font-bold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <div className="bg-[#EDF6F0] border border-[#BCE1C8] text-[#1D5E34] text-xs p-3 rounded-xl flex items-center gap-2 font-bold">
+              <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
               <span>{successNotice}</span>
             </div>
           )}
 
-          {/* 1. In-App Camera / Quality Inspection Photo */}
-          <div className="bg-slate-50 border-2 border-dashed border-amber-200 rounded-2xl p-4 space-y-3">
+          {/* Section 1: Quality Inspection Photo (In-App Camera) */}
+          <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Camera className="w-4 h-4 text-amber-700" />
-                <span>Waste Quality Photo (Camera Inspection)</span>
+              <label className="text-xs font-bold text-[#1C1E21] uppercase tracking-wider flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-[#9A6A15]" />
+                <span>1. Waste Quality Photo (Camera Inspection)</span>
               </label>
-              <span className="text-[11px] text-amber-800 font-bold bg-amber-100 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] text-[#855B09] font-bold bg-[#FDF6E2] border border-[#EED99E] px-2 py-0.5 rounded-full">
                 Enables Fair Quality-Based Price Negotiation
               </span>
             </div>
 
-            <p className="text-xs text-slate-500">
-              Capture or upload actual photos of your crop stubble or slurry so buyers can inspect purity, moisture, and agree on fair pricing before pickup.
+            <p className="text-xs text-[#575B62]">
+              Capture or upload actual photos of your crop residue or slurry so buyers can inspect purity, moisture, and agree on fair pricing before pickup.
             </p>
 
             {/* Live Camera Viewfinder if active */}
             {showLiveCam && (
-              <div className="relative rounded-2xl overflow-hidden bg-black border-2 border-amber-400 aspect-video flex flex-col items-center justify-center">
+              <div className="relative rounded-2xl overflow-hidden bg-black border border-[#D6CEC2] aspect-video flex flex-col items-center justify-center">
                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
                 <div className="absolute bottom-3 flex items-center gap-3">
                   <button
                     type="button"
                     onClick={captureSnapshot}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition"
+                    className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition cursor-pointer"
                   >
                     <Camera className="w-4 h-4" />
                     <span>Capture Snapshot</span>
@@ -319,7 +319,7 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                   <button
                     type="button"
                     onClick={stopLiveCamera}
-                    className="bg-slate-900/80 hover:bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl transition"
+                    className="bg-[#1C1E21]/80 hover:bg-[#1C1E21] text-white text-xs px-4 py-2.5 rounded-xl transition cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -329,24 +329,24 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
 
             {/* Photo Preview if captured */}
             {photoUrl && !showLiveCam ? (
-              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 bg-white p-2 flex items-center gap-4">
+              <div className="relative rounded-2xl overflow-hidden border border-[#2D5A43] bg-white p-2 flex items-center gap-4">
                 <img
                   src={photoUrl}
                   alt="Waste Inspection"
-                  className="w-28 h-24 object-cover rounded-xl border border-slate-200 shrink-0 shadow-sm"
+                  className="w-28 h-24 object-cover rounded-xl border border-[#E7E1D7] shrink-0 shadow-2xs"
                 />
                 <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-xs">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <div className="flex items-center gap-1.5 text-[#1D5E34] font-bold text-xs">
+                    <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
                     <span>Quality Photo Attached</span>
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#575B62]">
                     Buyers will inspect this image to verify moisture and purity during price negotiations.
                   </p>
                   <button
                     type="button"
                     onClick={() => setPhotoUrl('')}
-                    className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 pt-1"
+                    className="text-xs font-bold text-[#9E2A2B] hover:underline flex items-center gap-1 pt-1 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Remove & Retake Photo
                   </button>
@@ -375,50 +375,47 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                 <button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#9A6A15] hover:bg-[#7D540E] text-white font-bold text-xs shadow-2xs transition cursor-pointer"
                 >
-                  <Camera className="w-4 h-4 text-amber-100" />
+                  <Camera className="w-4 h-4 text-white" />
                   <span>Open Camera / Take Photo</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={startLiveCamera}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs shadow-2xs transition cursor-pointer"
                 >
-                  <Video className="w-4 h-4 text-emerald-200" />
+                  <Video className="w-4 h-4 text-white" />
                   <span>Live Webcam</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200 transition cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#F8F5EE] text-[#1C1E21] font-bold text-xs border border-[#E7E1D7] transition cursor-pointer"
                 >
-                  <Upload className="w-4 h-4 text-slate-500" />
+                  <Upload className="w-4 h-4 text-[#828892]" />
                   <span>Upload Image</span>
                 </button>
               </div>
             ) : null}
 
-            {/* Quality Grade Radios */}
-            <div className="pt-2 border-t border-slate-200 space-y-2">
-              <label className="block text-xs font-bold text-slate-700">Self-Assessed Quality Condition</label>
+            {/* Quality Grade Options */}
+            <div className="pt-2 border-t border-[#E7E1D7] space-y-2">
+              <label className="block text-xs font-bold text-[#1C1E21]">Self-Assessed Quality Condition</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {[
                   {
                     grade: 'Grade A (Low Moisture)',
-                    badge: 'bg-emerald-100 text-emerald-900 border-emerald-300',
                     desc: 'Sun-dried, <12% moisture, clean straw',
                   },
                   {
                     grade: 'Grade B (Standard)',
-                    badge: 'bg-sky-100 text-sky-900 border-sky-300',
                     desc: 'Fresh harvest, 12-20% moisture',
                   },
                   {
                     grade: 'Grade C (Mixed / High Moisture)',
-                    badge: 'bg-amber-100 text-amber-900 border-amber-300',
                     desc: 'Wet or mixed residue, >20% moisture',
                   },
                 ].map((item) => (
@@ -428,12 +425,12 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                     onClick={() => setQualityGrade(item.grade as any)}
                     className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
                       qualityGrade === item.grade
-                        ? 'border-emerald-600 bg-white shadow-xs ring-2 ring-emerald-500/20'
-                        : 'border-slate-200 bg-white/60 hover:bg-white'
+                        ? 'border-[#2D5A43] bg-white shadow-2xs ring-1 ring-[#2D5A43]/20'
+                        : 'border-[#E7E1D7] bg-white/70 hover:bg-white'
                     }`}
                   >
-                    <span className="text-xs font-bold block text-slate-900">{item.grade}</span>
-                    <span className="text-[10px] text-slate-500">{item.desc}</span>
+                    <span className="text-xs font-bold block text-[#1C1E21]">{item.grade}</span>
+                    <span className="text-[10px] text-[#828892]">{item.desc}</span>
                   </button>
                 ))}
               </div>
@@ -445,15 +442,15 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                   value={qualityNotes}
                   onChange={(e) => setQualityNotes(e.target.value)}
                   placeholder="Optional quality notes (e.g. baled into 25kg bundles, stored indoors)"
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600"
+                  className="w-full bg-white border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#1C1E21] placeholder:text-[#828892] focus:outline-none focus:border-[#2D5A43]"
                 />
               </div>
             </div>
           </div>
 
-          {/* 2. Waste Category */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          {/* Section 2: Waste Category & Type */}
+          <div className="space-y-3">
+            <label className="block text-xs font-bold text-[#1C1E21] uppercase tracking-wider">
               2. Waste Category & Type
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -463,14 +460,14 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                   setCategory('dry_organic');
                   setSubcategoryName('Crop Residue / Stubble');
                 }}
-                className={`p-3.5 rounded-2xl border-2 text-left transition cursor-pointer ${
+                className={`p-3.5 rounded-2xl border text-left transition cursor-pointer ${
                   category === 'dry_organic'
-                    ? 'border-emerald-600 bg-emerald-50/70 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 bg-slate-50'
+                    ? 'border-[#2D5A43] bg-[#EDF6F0]/60 shadow-2xs ring-1 ring-[#2D5A43]/20'
+                    : 'border-[#E7E1D7] hover:border-[#D6CEC2] bg-[#FAF8F5]'
                 }`}
               >
-                <span className="font-bold text-sm block text-slate-900">Dry Biomass / Stubble</span>
-                <span className="text-[11px] text-slate-500">Paddy straw, bagasse, stalks & wood chips (Biochar)</span>
+                <span className="font-bold text-sm block text-[#1C1E21]">Dry Biomass / Stubble</span>
+                <span className="text-[11px] text-[#575B62]">Paddy straw, bagasse, stalks & wood chips (Biochar)</span>
               </button>
 
               <button
@@ -479,115 +476,119 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                   setCategory('wet_organic');
                   setSubcategoryName('Cattle Dung / Slurry');
                 }}
-                className={`p-3.5 rounded-2xl border-2 text-left transition cursor-pointer ${
+                className={`p-3.5 rounded-2xl border text-left transition cursor-pointer ${
                   category === 'wet_organic'
-                    ? 'border-amber-500 bg-amber-50/70 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 bg-slate-50'
+                    ? 'border-[#9A6A15] bg-[#FDF6E2]/60 shadow-2xs ring-1 ring-[#9A6A15]/20'
+                    : 'border-[#E7E1D7] hover:border-[#D6CEC2] bg-[#FAF8F5]'
                 }`}
               >
-                <span className="font-bold text-sm block text-slate-900">Wet / Slurry Waste</span>
-                <span className="text-[11px] text-slate-500">Cattle dung, food pulp, press-mud (Biogas & Bio-CNG)</span>
+                <span className="font-bold text-sm block text-[#1C1E21]">Wet / Slurry Waste</span>
+                <span className="text-[11px] text-[#575B62]">Cattle dung, food pulp, press-mud (Biogas & Bio-CNG)</span>
               </button>
             </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#1C1E21] mb-1">
+                Waste Subcategory Description
+              </label>
+              <input
+                type="text"
+                value={subcategoryName}
+                onChange={(e) => setSubcategoryName(e.target.value)}
+                required
+                placeholder="e.g. Wheat Straw, Sugarcane Bagasse, Dairy Slurry"
+                className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white"
+              />
+            </div>
           </div>
 
-          {/* Subcategory Name */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Waste Subcategory Description
+          {/* Section 3: Quantity & Expected Date */}
+          <div className="space-y-3">
+            <label className="block text-xs font-bold text-[#1C1E21] uppercase tracking-wider">
+              3. Quantity & Pickup Schedule
             </label>
-            <input
-              type="text"
-              value={subcategoryName}
-              onChange={(e) => setSubcategoryName(e.target.value)}
-              required
-              placeholder="e.g. Wheat Straw, Sugarcane Bagasse, Dairy Slurry"
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
-            />
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#575B62] mb-1">Quantity</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  step="0.1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  required
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white tabular-nums"
+                />
+              </div>
 
-          {/* 3. Quantity & Expected Date */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Quantity</label>
-              <input
-                type="number"
-                min="0.1"
-                step="0.1"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                required
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
-              />
+              <div>
+                <label className="block text-xs font-bold text-[#575B62] mb-1">Unit</label>
+                <select
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value as WasteUnit)}
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium text-[#1C1E21] focus:outline-none focus:border-[#2D5A43]"
+                >
+                  <option value="ton">Metric Tons (t)</option>
+                  <option value="quintal">Quintals (q)</option>
+                  <option value="kg">Kilograms (kg)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#575B62] mb-1">Ready for Pickup By</label>
+                <input
+                  type="date"
+                  value={expectedDate}
+                  onChange={(e) => setExpectedDate(e.target.value)}
+                  required
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2 text-xs text-[#1C1E21] focus:outline-none focus:border-[#2D5A43]"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Unit</label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value as WasteUnit)}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-600"
-              >
-                <option value="ton">Metric Tons (t)</option>
-                <option value="quintal">Quintals (q)</option>
-                <option value="kg">Kilograms (kg)</option>
-              </select>
-            </div>
+            {/* Environmental & Market Value Summary */}
+            <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-4 grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-[#828892] font-medium block">CO2e Sequestration Potential</span>
+                <span className="text-lg font-black text-[#2D5A43] tabular-nums">
+                  {carbon.totalCO2e} <span className="text-xs font-normal">Tons CO2e</span>
+                </span>
+                <span className="text-[10px] text-[#1D5E34] block font-semibold mt-0.5">
+                  Eligible for ~{carbon.carbonCredits} Carbon Credits
+                </span>
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Ready for Pickup By</label>
-              <input
-                type="date"
-                value={expectedDate}
-                onChange={(e) => setExpectedDate(e.target.value)}
-                required
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
-              />
-            </div>
-          </div>
-
-          {/* Live Environmental & Market Value Card */}
-          <div className="bg-gradient-to-r from-emerald-50 to-amber-50 border-2 border-amber-200 rounded-2xl p-4 grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <span className="text-slate-500 font-medium block">CO2e Sequestration Potential</span>
-              <span className="text-lg font-black text-emerald-800">
-                {carbon.totalCO2e} <span className="text-xs font-normal">Tons CO2e</span>
-              </span>
-              <span className="text-[10px] text-emerald-700 block font-semibold mt-0.5">
-                Eligible for ~{carbon.carbonCredits} Carbon Credits
-              </span>
-            </div>
-
-            <div>
-              <span className="text-slate-500 font-medium block">Baseline Economic Value</span>
-              <span className="text-lg font-black text-amber-800">
-                ₹{carbon.estimatedMarketValueINR.toLocaleString('en-IN')}
-              </span>
-              <span className="text-[10px] text-amber-700 block font-semibold mt-0.5">
-                Open for interactive two-way negotiation!
-              </span>
+              <div>
+                <span className="text-[#828892] font-medium block">Baseline Economic Value</span>
+                <span className="text-lg font-black text-[#9A6A15] tabular-nums">
+                  ₹{carbon.estimatedMarketValueINR.toLocaleString('en-IN')}
+                </span>
+                <span className="text-[10px] text-[#855B09] block font-semibold mt-0.5">
+                  Open for interactive two-way negotiation!
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* 4. Choose Destination: Open Marketplace vs Specific Processor */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Listing Allocation & Negotiation Mode</span>
+          {/* Section 4: Choose Destination: Open Marketplace vs Specific Processor */}
+          <div className="space-y-3">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#1C1E21] flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5 text-[#2D5A43]" />
+              <span>4. Listing Allocation & Negotiation Mode</span>
             </label>
 
             <div className="grid grid-cols-2 gap-2 mb-3">
               <button
                 type="button"
                 onClick={() => setAllocationMode('marketplace')}
-                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer ${
+                className={`p-3 rounded-2xl border text-left transition cursor-pointer ${
                   allocationMode === 'marketplace'
-                    ? 'border-emerald-600 bg-emerald-50/70 font-bold'
-                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                    ? 'border-[#2D5A43] bg-[#EDF6F0]/60 font-bold'
+                    : 'border-[#E7E1D7] bg-white hover:bg-[#FAF8F5]'
                 }`}
               >
-                <span className="text-xs text-slate-900 block font-black">Open Marketplace</span>
-                <span className="text-[10px] text-slate-500">
+                <span className="text-xs text-[#1C1E21] block font-black">Open Marketplace</span>
+                <span className="text-[10px] text-[#575B62]">
                   Allow multiple nearby facilities to inspect photos and bid/negotiate
                 </span>
               </button>
@@ -595,14 +596,14 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
               <button
                 type="button"
                 onClick={() => setAllocationMode('specific')}
-                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer ${
+                className={`p-3 rounded-2xl border text-left transition cursor-pointer ${
                   allocationMode === 'specific'
-                    ? 'border-emerald-600 bg-emerald-50/70 font-bold'
-                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                    ? 'border-[#2D5A43] bg-[#EDF6F0]/60 font-bold'
+                    : 'border-[#E7E1D7] bg-white hover:bg-[#FAF8F5]'
                 }`}
               >
-                <span className="text-xs text-slate-900 block font-black">Select Specific Facility</span>
-                <span className="text-[10px] text-slate-500">
+                <span className="text-xs text-[#1C1E21] block font-black">Select Specific Facility</span>
+                <span className="text-[10px] text-[#575B62]">
                   Directly send to one plant and negotiate price privately
                 </span>
               </button>
@@ -611,7 +612,7 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
             {allocationMode === 'specific' && (
               <>
                 {availableProcessors.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <p className="text-xs text-[#575B62] italic p-3 bg-[#FAF8F5] rounded-xl border border-[#E7E1D7]">
                     No matching verified processors in database yet. Listing will be posted to open marketplace.
                   </p>
                 ) : (
@@ -619,10 +620,10 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                     {availableProcessors.map((proc) => (
                       <label
                         key={proc.id}
-                        className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition ${
+                        className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition ${
                           selectedProcessorId === proc.id
-                            ? 'border-emerald-600 bg-emerald-50/60 shadow-xs'
-                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                            ? 'border-[#2D5A43] bg-[#EDF6F0]/60 shadow-2xs'
+                            : 'border-[#E7E1D7] hover:border-[#D6CEC2] bg-white'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
@@ -631,18 +632,18 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                             name="processorSelection"
                             checked={selectedProcessorId === proc.id}
                             onChange={() => setSelectedProcessorId(proc.id)}
-                            className="text-emerald-600 focus:ring-emerald-500"
+                            className="text-[#2D5A43] focus:ring-[#2D5A43]"
                           />
                           <div>
-                            <p className="font-bold text-xs text-slate-900">{proc.full_name}</p>
-                            <p className="text-[11px] text-slate-500">
+                            <p className="font-bold text-xs text-[#1C1E21]">{proc.full_name}</p>
+                            <p className="text-[11px] text-[#828892]">
                               {proc.city ? `${proc.city}, ${proc.state}` : proc.formatted_address || 'India'}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-[10px] text-slate-500 block">Baseline Rate</span>
-                          <span className="font-black text-emerald-700 text-sm">
+                          <span className="text-[10px] text-[#828892] block">Baseline Rate</span>
+                          <span className="font-black text-[#2D5A43] text-sm tabular-nums">
                             ₹{proc.price_per_ton ? proc.price_per_ton.toLocaleString('en-IN') : '2,500'}/t
                           </span>
                         </div>
@@ -654,36 +655,36 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
             )}
           </div>
 
-          {/* 5. Location Picker with Interactive Map */}
-          <div className="pt-2 border-t border-slate-200">
+          {/* Section 5: Location Picker with Interactive Map */}
+          <div className="pt-2 border-t border-[#E7E1D7]">
             <LocationPicker
               value={addressData}
               onChange={setAddressData}
-              label="Pickup Location & Farm Gate Coordinates"
+              label="5. Pickup Location & Farm Gate Coordinates"
             />
           </div>
 
           {/* Footer Submit */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-[#E7E1D7] flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => {
                 stopLiveCamera();
                 onClose();
               }}
-              className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+              className="px-4 py-2 text-xs text-[#575B62] hover:text-[#1C1E21] cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-sm transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Saving to Supabase...</span>
+                  <span>Saving to Database...</span>
                 </>
               ) : (
                 <span>Publish Waste Listing</span>

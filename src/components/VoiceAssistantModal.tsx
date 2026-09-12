@@ -261,23 +261,23 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white border-2 border-amber-200/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] max-h-[700px]">
-        {/* Header with White - Golden - Emerald Theme */}
-        <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-amber-700 p-4 sm:p-5 text-white flex items-center justify-between shadow-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#1C1E21]/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-[#FFFFFF] border border-[#E7E1D7] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] max-h-[700px]">
+        {/* Header with Waste2Carbon Theme */}
+        <div className="bg-gradient-to-r from-[#1E4330] via-[#2D5A43] to-[#1E4330] p-4 sm:p-5 text-white flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-400 text-emerald-950 flex items-center justify-center shadow-lg font-black">
-              <Sparkles className="w-5 h-5 text-emerald-950" />
+            <div className="w-10 h-10 rounded-2xl bg-[#D4A34F] text-[#1C1E21] flex items-center justify-center shadow-xs font-black">
+              <Sparkles className="w-5 h-5 text-[#1C1E21]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-base sm:text-lg tracking-tight">AgriCarbon AI Voice Agent</h3>
-                <span className="bg-amber-400/30 text-amber-200 border border-amber-300/40 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  Groq Autonomous
+                <h3 className="font-serif font-bold text-base sm:text-lg tracking-tight">Waste2Carbon Voice Intelligence</h3>
+                <span className="bg-[#D4A34F]/20 text-[#D4A34F] border border-[#D4A34F]/40 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  Autonomous Agent
                 </span>
               </div>
               <p className="text-xs text-emerald-100/90">
-                Speak in Hindi, Hinglish, Punjabi, or English · Instant Supabase Actions
+                Speak in Hindi, Hinglish, Punjabi, or English · Executes directly in Supabase
               </p>
             </div>
           </div>
@@ -285,21 +285,21 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSpokenVoiceEnabled(!spokenVoiceEnabled)}
-              title={spokenVoiceEnabled ? 'Mute Voice' : 'Unmute Voice'}
-              className="p-2 rounded-xl bg-emerald-900/60 hover:bg-emerald-900 text-emerald-200 border border-emerald-600/40 transition"
+              title={spokenVoiceEnabled ? 'Mute Voice Feedback' : 'Enable Voice Audio'}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-200 border border-white/15 transition cursor-pointer"
             >
               {spokenVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
             <button
               onClick={() => setShowKeyInput(!showKeyInput)}
               title="Groq API Key Settings"
-              className="p-2 rounded-xl bg-emerald-900/60 hover:bg-emerald-900 text-amber-300 border border-amber-400/40 transition"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#D4A34F] border border-white/15 transition cursor-pointer"
             >
               <KeyRound className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-emerald-900/60 hover:bg-rose-600 text-white transition"
+              className="p-2 rounded-xl bg-white/10 hover:bg-rose-600 text-white transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -308,13 +308,13 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
 
         {/* API Key Banner / Config */}
         {showKeyInput && (
-          <div className="bg-amber-50 border-b border-amber-200 p-4 space-y-2 text-xs">
+          <div className="bg-[#FAF8F5] border-b border-[#E7E1D7] p-4 space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-amber-900 flex items-center gap-1.5">
-                <KeyRound className="w-4 h-4 text-amber-600" />
-                Configure Groq Cloud API Key (LLaMA 3.3 70B Engine)
+              <span className="font-bold text-[#1C1E21] flex items-center gap-1.5">
+                <KeyRound className="w-4 h-4 text-[#9A6A15]" />
+                Configure Groq API Key (LLaMA 3.3 70B Engine)
               </span>
-              <button onClick={() => setShowKeyInput(false)} className="text-amber-800 hover:underline">
+              <button onClick={() => setShowKeyInput(false)} className="text-[#828892] hover:text-[#1C1E21] cursor-pointer">
                 Hide
               </button>
             </div>
@@ -324,38 +324,38 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="gsk_..."
-                className="flex-1 bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-600"
+                className="flex-1 bg-[#FFFFFF] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs font-mono text-[#1C1E21] focus:outline-none focus:border-[#2D5A43]"
               />
               <button
                 type="submit"
-                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-xl shadow transition"
+                className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold px-4 py-2 rounded-xl shadow-xs transition cursor-pointer"
               >
                 Save Key
               </button>
             </form>
-            <p className="text-[11px] text-amber-800/80">
-              Your key is saved locally in browser localStorage and used directly for sub-second responses.
+            <p className="text-[11px] text-[#828892]">
+              Stored securely in local browser storage and used for low-latency inference.
             </p>
           </div>
         )}
 
         {/* Chat / Transcript Stream */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-[#fcfbf7] to-[#f8f6f0]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#FAF8F5]">
           {chatLog.map((msg, idx) => (
             <div
               key={idx}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in`}
             >
               <div
-                className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 shadow-sm space-y-1.5 ${
+                className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 shadow-xs space-y-1.5 ${
                   msg.sender === 'user'
-                    ? 'bg-emerald-700 text-white rounded-tr-none'
-                    : 'bg-white border border-amber-200/80 text-slate-800 rounded-tl-none shadow-md'
+                    ? 'bg-[#2D5A43] text-white rounded-tr-none'
+                    : 'bg-[#FFFFFF] border border-[#E7E1D7] text-[#1C1E21] rounded-tl-none shadow-xs'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 text-[10px] opacity-75">
                   <span className="font-bold uppercase tracking-wider">
-                    {msg.sender === 'user' ? currentUser?.full_name || 'You' : 'AgriCarbon AI Agent'}
+                    {msg.sender === 'user' ? currentUser?.full_name || 'You' : 'Waste2Carbon AI Agent'}
                   </span>
                   <span>{msg.time}</span>
                 </div>
@@ -363,9 +363,9 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
                 <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
 
                 {msg.actionSummary && (
-                  <div className="mt-2 bg-amber-50 border border-amber-300/80 rounded-xl p-2 text-xs text-amber-950 font-semibold flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                    <span>Action Executed: {msg.actionSummary}</span>
+                  <div className="mt-2 bg-[#F4EDE2] border border-[#D4A34F]/60 rounded-xl p-2.5 text-xs text-[#1C1E21] font-medium flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-[#9A6A15] shrink-0" />
+                    <span>Action Executed: <strong className="text-[#2D5A43]">{msg.actionSummary}</strong></span>
                   </div>
                 )}
               </div>
@@ -374,9 +374,9 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
 
           {isProcessing && (
             <div className="flex justify-start">
-              <div className="bg-white border border-amber-200 rounded-2xl p-3.5 shadow-sm rounded-tl-none flex items-center gap-2.5 text-xs text-slate-600">
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
-                <span>Processing natural language & executing database action...</span>
+              <div className="bg-[#FFFFFF] border border-[#E7E1D7] rounded-2xl p-4 shadow-xs rounded-tl-none flex items-center gap-2.5 text-xs text-[#828892]">
+                <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+                <span>Processing natural language & orchestrating action...</span>
               </div>
             </div>
           )}
@@ -385,44 +385,44 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
         </div>
 
         {/* Quick Voice Suggestions Pill Bar */}
-        <div className="px-4 py-2 bg-amber-50/60 border-t border-amber-100 flex items-center gap-2 overflow-x-auto text-[11px]">
-          <span className="text-amber-800 font-bold shrink-0 flex items-center gap-1">
-            <Languages className="w-3.5 h-3.5" /> Try asking:
+        <div className="px-4 py-2 bg-[#F4EDE2]/70 border-t border-[#E7E1D7] flex items-center gap-2 overflow-x-auto text-[11px]">
+          <span className="text-[#9A6A15] font-bold shrink-0 flex items-center gap-1">
+            <Languages className="w-3.5 h-3.5" /> Try:
           </span>
           <button
             onClick={() => handleProcessQuery('Mere paas 8 ton parali hai biochar plant ko bechni hai')}
-            className="shrink-0 bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 px-2.5 py-1 rounded-full transition"
+            className="shrink-0 bg-[#FFFFFF] hover:bg-[#FAF8F5] text-[#1C1E21] border border-[#E7E1D7] px-3 py-1 rounded-full transition cursor-pointer"
           >
             "Mere paas 8 ton parali hai" (Hindi)
           </button>
           <button
             onClick={() => handleProcessQuery('Offer ko ₹2800 per ton counter karo')}
-            className="shrink-0 bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 px-2.5 py-1 rounded-full transition"
+            className="shrink-0 bg-[#FFFFFF] hover:bg-[#FAF8F5] text-[#1C1E21] border border-[#E7E1D7] px-3 py-1 rounded-full transition cursor-pointer"
           >
             "Offer ko ₹2800 counter karo"
           </button>
           <button
             onClick={() => handleProcessQuery('Mera carbon credit balance aur total waste kitna hai?')}
-            className="shrink-0 bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 px-2.5 py-1 rounded-full transition"
+            className="shrink-0 bg-[#FFFFFF] hover:bg-[#FAF8F5] text-[#1C1E21] border border-[#E7E1D7] px-3 py-1 rounded-full transition cursor-pointer"
           >
             "Mera carbon credit balance kitna hai?"
           </button>
         </div>
 
         {/* Input Controls: Voice Microphone + Text Box */}
-        <div className="p-4 bg-white border-t border-slate-200 flex items-center gap-2.5">
+        <div className="p-4 bg-[#FFFFFF] border-t border-[#E7E1D7] flex items-center gap-2.5">
           {/* Big Voice Mic Button */}
           <button
             type="button"
             onClick={toggleListening}
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition shadow-md shrink-0 ${
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition shadow-xs shrink-0 cursor-pointer ${
               isListening
-                ? 'bg-rose-600 text-white animate-pulse shadow-rose-200'
-                : 'bg-gradient-to-tr from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-slate-950 font-bold shadow-amber-200'
+                ? 'bg-rose-600 text-white animate-pulse'
+                : 'bg-[#D4A34F] hover:bg-[#9A6A15] text-[#1C1E21] hover:text-white font-bold'
             }`}
             title={isListening ? 'Stop Listening' : 'Click to Speak in Any Language'}
           >
-            {isListening ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-slate-950" />}
+            {isListening ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-[#1C1E21]" />}
           </button>
 
           {/* Text Input for typing alternative */}
@@ -439,18 +439,18 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
               onChange={(e) => setQueryText(e.target.value)}
               placeholder={
                 isListening
-                  ? 'Listening to your voice... Speak now'
-                  : 'Speak or type query in Hindi / English / Any language...'
+                  ? 'Listening to voice stream... Speak now'
+                  : 'Speak or type request in Hindi / Hinglish / English...'
               }
-              className="flex-1 bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+              className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#1C1E21] focus:outline-none focus:border-[#2D5A43] focus:bg-white transition"
             />
             <button
               type="submit"
               disabled={isProcessing || !queryText.trim()}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-2xl shadow transition disabled:opacity-50 flex items-center gap-1.5"
+              className="bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold px-5 py-3 rounded-2xl shadow-xs transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">Send</span>
+              <span className="hidden sm:inline">Execute</span>
             </button>
           </form>
         </div>

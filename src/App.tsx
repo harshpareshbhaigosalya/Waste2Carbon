@@ -12,10 +12,27 @@ import { VoiceAssistantModal } from './components/VoiceAssistantModal';
 import { Sparkles, Mic } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { currentUser } = useApp();
+  const { currentUser, isLoading } = useApp();
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
+
+  // 0. Show seamless loading splash if session is hydrating
+  if (isLoading && !currentUser) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#2D5A43] text-[#E5C378] flex items-center justify-center font-black shadow-md border border-[#3D7457] animate-pulse">
+            <Sparkles className="w-7 h-7" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-extrabold text-lg text-[#1C1E21] tracking-tight">Waste2Carbon</h3>
+            <p className="text-xs text-[#828892]">Restoring secure session...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 1. If not logged in -> Show Clean Auth Screen
   if (!currentUser) {
@@ -29,7 +46,7 @@ const MainLayout: React.FC = () => {
 
   // 3. User is logged in -> Show appropriate dashboard
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-emerald-600 selection:text-white relative">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#1C1E21] flex flex-col selection:bg-[#2D5A43] selection:text-white relative">
       <Navbar
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenVoiceAssistant={() => setIsVoiceOpen(true)}
@@ -57,16 +74,18 @@ const MainLayout: React.FC = () => {
       <div className="fixed bottom-6 right-6 z-30">
         <button
           onClick={() => setIsVoiceOpen(true)}
-          className="flex items-center gap-2.5 bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 hover:from-amber-300 hover:to-emerald-300 text-slate-950 font-black px-5 py-3.5 rounded-full shadow-2xl hover:shadow-amber-400/40 transition transform hover:scale-105 border-2 border-white cursor-pointer pulse-glow"
+          className="flex items-center gap-2.5 bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-[#43755A] cursor-pointer"
         >
-          <Mic className="w-5 h-5 text-emerald-950" />
-          <span className="text-xs sm:text-sm">AgriCarbon AI Voice</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-700 animate-ping" />
+          <div className="w-6 h-6 rounded-full bg-[#3D7457] flex items-center justify-center text-white">
+            <Mic className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-xs sm:text-sm font-semibold tracking-tight">AI Voice Assistant</span>
+          <span className="w-2 h-2 rounded-full bg-[#E5C378] animate-pulse" />
         </button>
       </div>
 
-      <footer className="border-t border-amber-200/60 bg-white/70 py-6 text-center text-xs text-slate-500">
-        <p>W2C | Circular Carbon Ecosystem · IPCC MRV Standard · India</p>
+      <footer className="border-t border-[#E7E1D7] bg-[#FAF8F5] py-6 text-center text-xs text-[#828892]">
+        <p>Waste2Carbon · Circular Carbon Ecosystem · IPCC MRV Standard · India</p>
       </footer>
 
       <CertificateModal
