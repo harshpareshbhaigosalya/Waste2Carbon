@@ -223,9 +223,9 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
       {/* Active Price Negotiations & Facility Offers */}
       {myRequests.length > 0 && (
         <div className="bg-white border border-[#E7E1D7] rounded-3xl p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#FDF6E2] text-[#855B09] flex items-center justify-center font-bold border border-[#EED99E]">
+              <div className="w-8 h-8 rounded-xl bg-[#FDF6E2] text-[#855B09] flex items-center justify-center font-bold border border-[#EED99E] shrink-0">
                 <ArrowUpDown className="w-4 h-4" />
               </div>
               <div>
@@ -233,7 +233,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                 <p className="text-xs text-[#575B62]">Negotiate for a higher selling price per ton directly with processors</p>
               </div>
             </div>
-            <span className="text-xs font-bold bg-[#FAF8F5] text-[#575B62] border border-[#E7E1D7] px-2.5 py-1 rounded-full">
+            <span className="self-start sm:self-auto text-xs font-bold bg-[#FAF8F5] text-[#575B62] border border-[#E7E1D7] px-2.5 py-1 rounded-full shrink-0">
               {myRequests.length} Facility Offers
             </span>
           </div>

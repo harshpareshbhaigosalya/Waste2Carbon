@@ -261,23 +261,23 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({ isOpen
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#1C1E21]/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-[#FFFFFF] border border-[#E7E1D7] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] max-h-[700px]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#1C1E21]/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-[#FFFFFF] border border-[#E7E1D7] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[90vh] sm:h-[85vh] max-h-[700px]">
         {/* Header with Waste2Carbon Theme */}
-        <div className="bg-gradient-to-r from-[#1E4330] via-[#2D5A43] to-[#1E4330] p-4 sm:p-5 text-white flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#D4A34F] text-[#1C1E21] flex items-center justify-center shadow-xs font-black">
-              <Sparkles className="w-5 h-5 text-[#1C1E21]" />
+        <div className="bg-gradient-to-r from-[#1E4330] via-[#2D5A43] to-[#1E4330] p-3.5 sm:p-5 text-white flex items-center justify-between shadow-xs gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#D4A34F] text-[#1C1E21] flex items-center justify-center shadow-xs font-black shrink-0">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#1C1E21]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-serif font-bold text-base sm:text-lg tracking-tight">Waste2Carbon Voice Intelligence</h3>
-                <span className="bg-[#D4A34F]/20 text-[#D4A34F] border border-[#D4A34F]/40 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  Autonomous Agent
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="font-serif font-bold text-sm sm:text-base tracking-tight truncate">Voice Intelligence</h3>
+                <span className="bg-[#D4A34F]/20 text-[#D4A34F] border border-[#D4A34F]/40 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shrink-0">
+                  AI Agent
                 </span>
               </div>
-              <p className="text-xs text-emerald-100/90">
-                Speak in Hindi, Hinglish, Punjabi, or English · Executes directly in Supabase
+              <p className="text-[10px] sm:text-xs text-emerald-100/90 truncate">
+                Hindi · Hinglish · Punjabi · English
               </p>
             </div>
           </div>

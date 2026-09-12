@@ -109,16 +109,18 @@ const MainLayout: React.FC = () => {
         )}
       </main>
 
-      {/* Floating Hero Quick Voice Assistant FAB (Bottom Right) */}
-      <div className="fixed bottom-6 right-6 z-30">
+      {/* Floating Quick Voice Assistant FAB (Bottom Right) */}
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30">
         <button
           onClick={() => setIsVoiceOpen(true)}
-          className="flex items-center gap-2.5 bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-[#43755A] cursor-pointer"
+          className="flex items-center gap-2 sm:gap-2.5 bg-[#2D5A43] hover:bg-[#1E4330] text-white font-bold p-3 sm:px-5 sm:py-3 rounded-full shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-[#43755A] cursor-pointer"
+          title="Open AI Voice Assistant"
+          aria-label="Open AI Voice Assistant"
         >
-          <div className="w-6 h-6 rounded-full bg-[#3D7457] flex items-center justify-center text-white">
+          <div className="w-6 h-6 rounded-full bg-[#3D7457] flex items-center justify-center text-white shrink-0">
             <Mic className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs sm:text-sm font-semibold tracking-tight">AI Voice Assistant</span>
+          <span className="hidden sm:inline text-xs sm:text-sm font-semibold tracking-tight">AI Voice Assistant</span>
           <span className="w-2 h-2 rounded-full bg-[#E5C378] animate-pulse" />
         </button>
       </div>
