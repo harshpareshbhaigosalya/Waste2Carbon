@@ -591,7 +591,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                       </div>
 
                       {/* Quality Inspection Photo preview */}
-                      {req.listing_photo_url && (
+                      {req.listing_photo_url ? (
                         <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7] w-full max-w-xl">
                           <div className="flex items-center gap-3">
                             <img
@@ -667,11 +667,16 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                                 });
                               }
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-[#FAF8F5] hover:bg-[#F2ECE0] border border-[#E7E1D7] text-[11px] font-bold text-[#2D5A43] flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-[#2D5A43] hover:bg-[#1E4330] text-white text-[11px] font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
                           >
-                            <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
-                            <span>AI Quality Assay</span>
+                            <Scan className="w-3.5 h-3.5 text-[#E5C378]" />
+                            <span>AI Spectral Assay</span>
                           </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 bg-[#FAF8F5] p-2 rounded-xl border border-dashed border-[#E7E1D7] text-xs text-[#828892] w-full max-w-xl">
+                          <span className="w-2 h-2 rounded-full bg-[#828892]" />
+                          <span className="text-[11px] italic">No image uploaded by seller</span>
                         </div>
                       )}
 

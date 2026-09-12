@@ -791,8 +791,8 @@ export const AdminDashboard: React.FC = () => {
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-white/50 space-y-1">
-                        <Camera className="w-8 h-8 text-[#E5C378]" />
-                        <span className="text-[10px]">Photo Upload in Progress</span>
+                        <Camera className="w-8 h-8 text-[#828892]" />
+                        <span className="text-[10px] text-[#828892]">No Image Uploaded</span>
                       </div>
                     )}
 

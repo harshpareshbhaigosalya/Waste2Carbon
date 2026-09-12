@@ -190,7 +190,8 @@ export const ComputerVisionModal: React.FC<ComputerVisionModalProps> = ({ listin
               ) : (
                 <div className="text-center p-6 text-white space-y-2">
                   <Scan className="w-10 h-10 mx-auto text-[#E5C378] opacity-60" />
-                  <p className="text-xs text-[#D7DFD8]">Synthetic Sample Photo Rendering</p>
+                  <p className="text-xs text-[#D7DFD8] font-bold">No Image Uploaded</p>
+                  <p className="text-[10px] text-[#828892]">Assaying based on reported biomass category data</p>
                 </div>
               )}
 

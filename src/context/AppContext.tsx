@@ -146,10 +146,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (listingsData) {
         enrichedListings = listingsData.map((listing: any) => {
           const cached = localPhotos[listing.id];
-          const photo_url =
-            listing.photo_url ||
-            cached?.photo_url ||
-            getDefaultBiomassPhoto(listing.waste_category, listing.waste_subcategory);
+          const photo_url = listing.photo_url || cached?.photo_url || undefined;
           const quality_grade =
             listing.quality_grade ||
             cached?.quality_grade ||
@@ -184,7 +181,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             r.listing_photo_url ||
             cached?.photo_url ||
             matchingListing?.photo_url ||
-            getDefaultBiomassPhoto(r.waste_category);
+            undefined;
           const quality_grade =
             r.quality_grade ||
             cached?.quality_grade ||
@@ -666,20 +663,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    const effectivePhoto =
-      data.photo_url || getDefaultBiomassPhoto(data.waste_category, data.waste_subcategory);
+    const effectivePhoto = data.photo_url || undefined;
     const effectiveGrade =
       data.quality_grade ||
       (data.waste_category === 'dry_organic'
         ? 'Grade B (Standard)'
         : 'Grade C (Mixed / High Moisture)');
 
-    // Persist immediately in client-side storage cache so photo is preserved across all views
-    saveListingPhoto(listingId, {
-      photo_url: effectivePhoto,
-      quality_grade: effectiveGrade,
-      quality_notes: data.quality_notes,
-    });
+    // Persist in client-side storage cache if photo was uploaded
+    if (effectivePhoto) {
+      saveListingPhoto(listingId, {
+        photo_url: effectivePhoto,
+        quality_grade: effectiveGrade,
+        quality_notes: data.quality_notes,
+      });
+    }
 
     const newListing: WasteListing = {
       id: listingId,
@@ -951,17 +949,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const effectivePhoto =
       listing.photo_url ||
       getStoredListingPhotos()[listing.id]?.photo_url ||
-      getDefaultBiomassPhoto(listing.waste_category, listing.waste_subcategory);
+      undefined;
     const effectiveGrade =
       listing.quality_grade ||
       getStoredListingPhotos()[listing.id]?.quality_grade ||
       'Grade B (Standard)';
 
-    saveListingPhoto(listing.id, {
-      photo_url: effectivePhoto,
-      quality_grade: effectiveGrade,
-      quality_notes: listing.quality_notes,
-    });
+    if (effectivePhoto) {
+      saveListingPhoto(listing.id, {
+        photo_url: effectivePhoto,
+        quality_grade: effectiveGrade,
+        quality_notes: listing.quality_notes,
+      });
+    }
 
     const newRequest: PickupRequest = {
       id: `req-${Date.now()}`,

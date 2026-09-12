@@ -276,8 +276,8 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                     </span>
                   </div>
 
-                  {/* Quality Inspection Photo preview if available */}
-                  {req.listing_photo_url && (
+                  {/* Quality Inspection Photo preview */}
+                  {req.listing_photo_url ? (
                     <div className="flex items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7]">
                       <div className="flex items-center gap-3">
                         <img
@@ -357,6 +357,11 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                         <Scan className="w-3.5 h-3.5 text-[#E5C378]" />
                         <span>AI Assay</span>
                       </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-[#FAF8F5] p-2 rounded-xl border border-dashed border-[#E7E1D7] text-xs text-[#828892]">
+                      <span className="w-2 h-2 rounded-full bg-[#828892]" />
+                      <span className="text-[11px] italic">No image uploaded for this batch</span>
                     </div>
                   )}
 
@@ -474,7 +479,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                 </div>
 
                 {/* Quality photo card with AI Assay inspection */}
-                {listing.photo_url && (
+                {listing.photo_url ? (
                   <div className="flex items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7]">
                     <div className="flex items-center gap-3">
                       <img
@@ -498,6 +503,13 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                       <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
                       <span>Inspect AI Assay</span>
                     </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-dashed border-[#E7E1D7] text-xs text-[#828892]">
+                    <span className="italic text-[11px]">No image uploaded</span>
+                    <span className="font-bold text-[#575B62] text-[10px] bg-[#FAF8F5] px-2 py-0.5 rounded">
+                      {listing.quality_grade || 'Standard'}
+                    </span>
                   </div>
                 )}
 
