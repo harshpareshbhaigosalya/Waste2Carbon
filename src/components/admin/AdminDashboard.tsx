@@ -19,13 +19,20 @@ import {
   Wallet,
   ArrowUpRight,
   Sparkles,
+  Camera,
+  Cpu,
+  Eye,
+  Scan,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { WasteListing } from '../../types';
+import { ComputerVisionModal } from './ComputerVisionModal';
 
 export const AdminDashboard: React.FC = () => {
   const { allUsers, listings, pickupRequests, ledger, verifyProcessor, refreshData } = useApp();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'verifications' | 'directory' | 'activity' | 'monetization'>('verifications');
+  const [activeTab, setActiveTab] = useState<'verifications' | 'directory' | 'activity' | 'monetization' | 'vision'>('verifications');
+  const [inspectingListing, setInspectingListing] = useState<WasteListing | null>(null);
 
   // Filter unverified processors
   const pendingProcessors = allUsers.filter(
@@ -263,10 +270,10 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap rounded-2xl bg-[#F4EDE2]/80 p-1 border border-[#E7E1D7] max-w-2xl">
+      <div className="flex flex-wrap rounded-2xl bg-[#F4EDE2]/80 p-1 border border-[#E7E1D7] max-w-3xl">
         <button
           onClick={() => setActiveTab('verifications')}
-          className={`flex-1 min-w-[130px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[120px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === 'verifications'
               ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
               : 'text-[#828892] hover:text-[#1C1E21]'
@@ -276,8 +283,19 @@ export const AdminDashboard: React.FC = () => {
           <span>Verifications ({pendingProcessors.length})</span>
         </button>
         <button
+          onClick={() => setActiveTab('vision')}
+          className={`flex-1 min-w-[150px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeTab === 'vision'
+              ? 'bg-[#2D5A43] text-white shadow-xs'
+              : 'text-[#828892] hover:text-[#1C1E21]'
+          }`}
+        >
+          <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
+          <span>AI Vision QC ({listings.filter((l) => l.photo_url).length})</span>
+        </button>
+        <button
           onClick={() => setActiveTab('directory')}
-          className={`flex-1 min-w-[120px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[110px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === 'directory'
               ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
               : 'text-[#828892] hover:text-[#1C1E21]'
@@ -288,7 +306,7 @@ export const AdminDashboard: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('activity')}
-          className={`flex-1 min-w-[130px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[120px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === 'activity'
               ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
               : 'text-[#828892] hover:text-[#1C1E21]'
@@ -299,14 +317,14 @@ export const AdminDashboard: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('monetization')}
-          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[130px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === 'monetization'
-              ? 'bg-[#2D5A43] text-white shadow-xs'
+              ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
               : 'text-[#828892] hover:text-[#1C1E21]'
           }`}
         >
-          <Wallet className="w-3.5 h-3.5 text-[#E5C378]" />
-          <span>Monetization & Economics</span>
+          <Wallet className="w-3.5 h-3.5 text-[#9A6A15]" />
+          <span>Monetization</span>
         </button>
       </div>
 
@@ -718,6 +736,134 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Tab 5: AI Computer Vision Quality Control Hub */}
+      {activeTab === 'vision' && (
+        <div className="bg-[#FFFFFF] border border-[#E7E1D7] rounded-3xl p-6 shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E7E1D7] pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#EDF6F0] text-[#1D5E34] border border-[#BCE1C8] flex items-center gap-1">
+                  <Cpu className="w-3 h-3 text-[#2D5A43]" />
+                  ResNet-50 Biomass Spectral Classifier
+                </span>
+                <span className="text-xs text-[#828892]">Automated Quality Grading</span>
+              </div>
+              <h2 className="font-serif font-bold text-lg text-[#1C1E21] mt-1">
+                Computer Vision Biomass Inspection & Moisture Assay
+              </h2>
+              <p className="text-xs text-[#575B62] max-w-xl">
+                Real-time multi-spectral neural net analysis of farmer-uploaded feedstock photos. Evaluates surface moisture saturation, plastic impurities, and assigns Grade A/B/C quality certifications.
+              </p>
+            </div>
+
+            <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl px-4 py-2.5 text-right shadow-2xs shrink-0">
+              <span className="text-[10px] text-[#828892] uppercase font-bold tracking-wider block">Audited Batches</span>
+              <span className="text-xl font-black text-[#2D5A43] font-mono">
+                {listings.filter((l) => l.photo_url).length}{' '}
+                <span className="text-xs text-[#828892] font-normal">Photos</span>
+              </span>
+            </div>
+          </div>
+
+          {listings.length === 0 ? (
+            <div className="py-12 text-center text-[#828892] space-y-2">
+              <Camera className="w-10 h-10 mx-auto text-[#2D5A43] opacity-40" />
+              <p className="font-serif font-bold text-base text-[#1C1E21]">No waste listings in database yet</p>
+              <p className="text-xs text-[#828892]">Listings created by producers will appear here for vision inspection.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {listings.map((listing) => (
+                <div
+                  key={listing.id}
+                  className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl overflow-hidden shadow-2xs hover:border-[#2D5A43] transition flex flex-col justify-between"
+                >
+                  <div className="relative aspect-16/10 bg-[#1C1E21] overflow-hidden group">
+                    {listing.photo_url ? (
+                      <img
+                        src={listing.photo_url}
+                        alt={listing.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-white/50 space-y-1">
+                        <Camera className="w-8 h-8 text-[#E5C378]" />
+                        <span className="text-[10px]">Photo Upload in Progress</span>
+                      </div>
+                    )}
+
+                    <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#1C1E21]/80 text-white backdrop-blur-xs">
+                        {listing.waste_category === 'dry_organic' ? 'Dry Biomass' : 'Wet Biomass'}
+                      </span>
+                    </div>
+
+                    <div className="absolute top-2 right-2">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase text-white shadow-2xs ${
+                          listing.quality_grade?.includes('Grade A')
+                            ? 'bg-[#2D5A43]'
+                            : listing.quality_grade?.includes('Grade C')
+                            ? 'bg-[#9E2A2B]'
+                            : 'bg-[#9A6A15]'
+                        }`}
+                      >
+                        {listing.quality_grade?.split(' ')[0] || 'Grade B'}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => setInspectingListing(listing)}
+                      className="absolute inset-0 bg-[#1C1E21]/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 text-white text-xs font-bold backdrop-blur-2xs cursor-pointer"
+                    >
+                      <Scan className="w-4 h-4 text-[#E5C378]" />
+                      <span>Run AI Spectral Scan</span>
+                    </button>
+                  </div>
+
+                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-sm text-[#1C1E21] line-clamp-1">{listing.title}</h4>
+                      <p className="text-xs text-[#575B62]">
+                        Seller: <strong className="text-[#1C1E21]">{listing.producer_name}</strong> · {listing.quantity_in_tons} MT
+                      </p>
+                      <p className="text-[11px] text-[#828892] truncate">
+                        {listing.city ? `${listing.city}, ${listing.state}` : listing.formatted_address}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#E7E1D7] flex items-center justify-between">
+                      <div className="text-[10px] text-[#828892]">
+                        <span className="block font-semibold text-[#1C1E21]">
+                          {listing.quality_grade || 'Grade B (Standard)'}
+                        </span>
+                        <span>Moisture: {listing.quality_grade?.includes('Grade A') ? '12-14%' : listing.quality_grade?.includes('Grade C') ? '30-36%' : '18-22%'}</span>
+                      </div>
+
+                      <button
+                        onClick={() => setInspectingListing(listing)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2D5A43] hover:bg-[#1E4330] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                      >
+                        <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
+                        <span>Inspect AI Assay</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Computer Vision Deep Scan Modal */}
+      {inspectingListing && (
+        <ComputerVisionModal
+          listing={inspectingListing}
+          onClose={() => setInspectingListing(null)}
+        />
       )}
     </div>
   );

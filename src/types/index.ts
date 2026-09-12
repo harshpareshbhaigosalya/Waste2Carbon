@@ -166,3 +166,19 @@ export interface DeliveryReceipt {
   timestamp: string;
   otpVerified: string;
 }
+
+export interface QualityInspectionAnalysis {
+  listingId: string;
+  scannedAt: string;
+  grade: 'Grade A' | 'Grade B' | 'Grade C';
+  gradeTitle: string;
+  confidenceScore: number;
+  moisturePercentage: number;
+  foreignContaminantsPercentage: number;
+  plasticSyntheticMixture: number;
+  organicPurityScore: number;
+  colorationSpectralScore: number;
+  calorificEstimatedMJ: number;
+  recommendedUse: string;
+  aiDiagnosticLog: string[];
+}
