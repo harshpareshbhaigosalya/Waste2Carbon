@@ -41,6 +41,11 @@ interface AppContextType {
   acceptPickupRequest: (requestId: string) => Promise<void>;
   verifyPickupHandshake: (requestId: string, enteredOtp: string) => Promise<{ success: boolean; message: string; credits?: number }>;
 
+  // Admin & Verification Operations
+  verifyProcessor: (processorId: string, verifiedStatus: boolean) => Promise<void>;
+  updateUserProfile: (data: Partial<UserProfile> & { addressData?: AddressData }) => Promise<{ success: boolean; message: string }>;
+  updateProcessorPrice: (newPrice: number) => Promise<void>;
+
   // Certificate Modal State
   selectedCertificate: CarbonLedgerEntry | null;
   setSelectedCertificate: (cert: CarbonLedgerEntry | null) => void;
@@ -64,7 +69,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { data: profilesData } = await supabase.from('profiles').select('*');
       if (profilesData) {
         setAllUsers(profilesData);
-        // If logged in user, refresh their profile state
         if (currentUser) {
           const fresh = profilesData.find((p) => p.id === currentUser.id);
           if (fresh) setCurrentUser(fresh);
@@ -104,7 +108,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Initial load & check Supabase Auth session
+  // Initial load
   useEffect(() => {
     const initAuth = async () => {
       setIsLoading(true);
@@ -113,7 +117,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const authUser = sessionData?.session?.user;
 
         if (authUser) {
-          // Fetch user profile from Supabase
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -123,7 +126,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (profile) {
             setCurrentUser(profile);
           } else {
-            // User registered in auth but profile record pending
             const placeholder: UserProfile = {
               id: authUser.id,
               email: authUser.email || '',
@@ -132,6 +134,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               role: 'producer',
               entity_type: 'farm',
               onboarded: false,
+              verified: true,
               carbon_credits_balance: 0,
             };
             setCurrentUser(placeholder);
@@ -146,7 +149,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     initAuth();
   }, []);
 
-  // 2. Register Account with Supabase Auth & create database profile
+  // 2. Register Account
   const registerAccount = async (
     email: string,
     pass: string
@@ -160,7 +163,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (error) {
         // If Supabase free tier email rate limit is triggered, bypass directly to database
         if (error.message.toLowerCase().includes('rate limit') || error.status === 429) {
-          console.warn('Supabase email rate limit hit, creating profile directly in database');
           const fallbackId = `usr-${Date.now()}`;
           const fallbackProfile: UserProfile = {
             id: fallbackId,
@@ -170,6 +172,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             role: 'producer',
             entity_type: 'farm',
             onboarded: false,
+            verified: false,
             carbon_credits_balance: 0,
           };
           await supabase.from('profiles').upsert(fallbackProfile);
@@ -196,20 +199,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         phone: '',
         role: 'producer',
         entity_type: 'farm',
-        onboarded: false, // Must complete onboarding step!
+        onboarded: false,
+        verified: false,
         carbon_credits_balance: 0,
       };
 
-      // Store in Supabase profiles table
-      const { error: profileErr } = await supabase.from('profiles').upsert(initialProfile);
-      if (profileErr) {
-        console.error('Error inserting profile in Supabase:', profileErr);
-      }
-
+      await supabase.from('profiles').upsert(initialProfile);
       setCurrentUser(initialProfile);
       await refreshData();
 
-      // Check if email confirmation is required
       const session = data?.session;
       const requiresVerification = !session;
 
@@ -230,6 +228,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         role: 'producer',
         entity_type: 'farm',
         onboarded: false,
+        verified: false,
         carbon_credits_balance: 0,
       };
       await supabase.from('profiles').upsert(fallbackProfile);
@@ -243,11 +242,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // 3. Login Account with Supabase
+  // 3. Login Account (with dedicated Admin check)
   const loginAccount = async (
     email: string,
     pass: string
   ): Promise<{ success: boolean; message: string }> => {
+    // Special check for Admin credentials requested by user
+    if (email.trim().toLowerCase() === 'admin@gmail.com' && pass === 'admin123') {
+      const adminProfile: UserProfile = {
+        id: 'admin-root',
+        email: 'admin@gmail.com',
+        full_name: 'W2C System Administrator',
+        phone: '+91 99999 99999',
+        role: 'admin',
+        entity_type: 'admin',
+        onboarded: true,
+        verified: true,
+        carbon_credits_balance: 0,
+      };
+      try {
+        await supabase.from('profiles').upsert(adminProfile);
+      } catch (e) {
+        console.warn('Admin profile upsert:', e);
+      }
+      setCurrentUser(adminProfile);
+      await refreshData();
+      return { success: true, message: 'Welcome Administrator!' };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -255,7 +277,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (error) {
-        // If password login fails or user was registered via direct database profile bypass:
         const { data: directProfile } = await supabase
           .from('profiles')
           .select('*')
@@ -271,7 +292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       const authUser = data.user;
-      const { data: profile, error: pErr } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
@@ -288,6 +309,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           role: 'producer',
           entity_type: 'farm',
           onboarded: false,
+          verified: false,
           carbon_credits_balance: 0,
         };
         await supabase.from('profiles').upsert(placeholder);
@@ -319,6 +341,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!currentUser) return { success: false, message: 'No active session' };
 
     const addr = data.addressData;
+    const isProcessor = (data.role || currentUser.role) === 'processor';
+
     const updatedProfile: UserProfile = {
       ...currentUser,
       ...data,
@@ -329,11 +353,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       formatted_address: addr?.formatted_address || currentUser.formatted_address,
       latitude: addr?.latitude ?? currentUser.latitude ?? 28.6139,
       longitude: addr?.longitude ?? currentUser.longitude ?? 77.2090,
-      onboarded: true, // Marked permanently onboarded
+      onboarded: true,
+      // Processors start unverified until admin approves! Producers are active.
+      verified: isProcessor ? false : true,
     };
     delete (updatedProfile as any).addressData;
 
-    // Save directly to Supabase
     const { error } = await supabase.from('profiles').upsert(updatedProfile);
     if (error) {
       console.error('Supabase profile update error:', error);
@@ -345,7 +370,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Profile saved permanently in Supabase database!' };
   };
 
-  // Switch between profiles (useful for testing Producer & Processor in 1 browser)
+  // 5. Update Profile (Name, Phone, Address)
+  const updateUserProfile = async (
+    data: Partial<UserProfile> & { addressData?: AddressData }
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) return { success: false, message: 'No active session' };
+
+    const addr = data.addressData;
+    const updated: UserProfile = {
+      ...currentUser,
+      ...data,
+      street_address: addr?.street_address ?? currentUser.street_address,
+      city: addr?.city ?? currentUser.city,
+      state: addr?.state ?? currentUser.state,
+      pincode: addr?.pincode ?? currentUser.pincode,
+      formatted_address: addr?.formatted_address ?? currentUser.formatted_address,
+      latitude: addr?.latitude ?? currentUser.latitude,
+      longitude: addr?.longitude ?? currentUser.longitude,
+    };
+    delete (updated as any).addressData;
+
+    const { error } = await supabase.from('profiles').upsert(updated);
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    setCurrentUser(updated);
+    await refreshData();
+    return { success: true, message: 'Profile updated in Supabase!' };
+  };
+
+  // 6. Quick Update Processor Price
+  const updateProcessorPrice = async (newPrice: number) => {
+    if (!currentUser) return;
+    const updated: UserProfile = {
+      ...currentUser,
+      price_per_ton: newPrice,
+    };
+    await supabase.from('profiles').update({ price_per_ton: newPrice }).eq('id', currentUser.id);
+    setCurrentUser(updated);
+    await refreshData();
+  };
+
+  // 7. Admin Action: Verify / Reject Processor
+  const verifyProcessor = async (processorId: string, verifiedStatus: boolean) => {
+    await supabase.from('profiles').update({ verified: verifiedStatus }).eq('id', processorId);
+    await refreshData();
+  };
+
+  // Switch between profiles
   const switchUser = (userId: string) => {
     const matched = allUsers.find((u) => u.id === userId);
     if (matched) {
@@ -359,7 +432,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(null);
   };
 
-  // 5. Add Waste Listing & store in Supabase
+  // 8. Add Waste Listing
   const addListing = async (data: {
     title: string;
     waste_category: 'dry_organic' | 'wet_organic';
@@ -407,7 +480,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       latitude: data.addressData.latitude,
       longitude: data.addressData.longitude,
       estimated_co2_sequestered: metrics.totalCO2e,
-      estimated_value_usd: metrics.estimatedMarketValueUSD,
+      estimated_value_usd: metrics.estimatedMarketValueINR,
       status,
       assigned_processor_id: data.processor_id || undefined,
       assigned_processor_name: assignedProcessorName || undefined,
@@ -415,14 +488,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       created_at: new Date().toISOString(),
     };
 
-    // 1. Insert listing into Supabase
     const { error: listErr } = await supabase.from('waste_listings').insert([newListing]);
     if (listErr) {
-      console.error('Error inserting listing into Supabase:', listErr);
       return { success: false, message: `Database error: ${listErr.message}` };
     }
 
-    // 2. If a processor was selected, insert request into Supabase
     if (data.processor_id) {
       const proc = allUsers.find((u) => u.id === data.processor_id);
       const newRequest: PickupRequest = {
@@ -445,31 +515,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         created_at: new Date().toISOString(),
       };
 
-      const { error: reqErr } = await supabase.from('pickup_requests').insert([newRequest]);
-      if (reqErr) {
-        console.error('Error inserting pickup request:', reqErr);
-      }
+      await supabase.from('pickup_requests').insert([newRequest]);
     }
 
     await refreshData();
     return { success: true, message: 'Waste listing saved directly to Supabase!' };
   };
 
-  // 6. Processor accepts pickup request in Supabase
+  // 9. Processor accepts pickup request
   const acceptPickupRequest = async (requestId: string) => {
     const req = pickupRequests.find((r) => r.id === requestId);
     if (!req) return;
 
-    // Update request status to 'accepted'
     await supabase.from('pickup_requests').update({ status: 'accepted' }).eq('id', requestId);
-
-    // Update listing status to 'accepted'
     await supabase.from('waste_listings').update({ status: 'accepted' }).eq('id', req.listing_id);
 
     await refreshData();
   };
 
-  // 7. Handshake verification via 6-digit OTP
+  // 10. Handshake verification via 6-digit OTP
   const verifyPickupHandshake = async (
     requestId: string,
     enteredOtp: string
@@ -481,23 +545,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: 'Incorrect 6-digit code. Please verify the code on the producer’s screen.' };
     }
 
-    // Calculate verified credits
     const metrics = calculateCarbonMetrics(req.waste_category, req.quantity_tons, 'ton');
     const credits = metrics.carbonCredits;
 
-    // 1. Update request status to 'collected' in Supabase
     await supabase
       .from('pickup_requests')
       .update({ status: 'collected', credits_awarded: credits })
       .eq('id', requestId);
 
-    // 2. Update listing status to 'collected' in Supabase
     await supabase
       .from('waste_listings')
       .update({ status: 'collected' })
       .eq('id', req.listing_id);
 
-    // 3. Insert into carbon_ledger table in Supabase
     const certCode = `W2C-CERT-${Date.now().toString().slice(-6)}`;
     const ledgerEntry: CarbonLedgerEntry = {
       id: `ledg-${Date.now()}`,
@@ -513,7 +573,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     await supabase.from('carbon_ledger').insert([ledgerEntry]);
 
-    // 4. Increment carbon credit balances in profiles table
     const producer = allUsers.find((u) => u.id === req.producer_id);
     const processor = allUsers.find((u) => u.id === req.processor_id);
 
@@ -530,7 +589,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('id', req.processor_id);
     }
 
-    // Confetti celebration!
     try {
       confetti({
         particleCount: 120,
@@ -545,7 +603,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await refreshData();
     return {
       success: true,
-      message: `Pickup confirmed! ${credits} Carbon Credits saved to database for both parties.`,
+      message: `Pickup confirmed! ${credits} Carbon Credits issued to both parties.`,
       credits,
     };
   };
@@ -568,6 +626,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addListing,
         acceptPickupRequest,
         verifyPickupHandshake,
+        verifyProcessor,
+        updateUserProfile,
+        updateProcessorPrice,
         selectedCertificate,
         setSelectedCertificate,
       }}

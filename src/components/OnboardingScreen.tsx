@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Phone, Building, CheckCircle2, ArrowRight, DollarSign, Sprout, Factory, AlertCircle } from 'lucide-react';
+import { User, Phone, Building, CheckCircle2, ArrowRight, DollarSign, Sprout, Factory, AlertCircle, FileText, Upload, ShieldAlert } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { UserRole, EntityType, AddressData } from '../types';
 import { LocationPicker } from './LocationPicker';
@@ -25,8 +25,20 @@ export const OnboardingScreen: React.FC = () => {
   // Processor settings
   const [facilityType, setFacilityType] = useState<'biochar' | 'biogas'>('biochar');
   const [pricePerTon, setPricePerTon] = useState<number>(2500);
+  
+  // Verification Document for Processors
+  const [documentType, setDocumentType] = useState('SPCB Consent to Operate (CTO)');
+  const [documentNumber, setDocumentNumber] = useState('');
+  const [documentFileName, setDocumentFileName] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setDocumentFileName(e.target.files[0].name);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +54,10 @@ export const OnboardingScreen: React.FC = () => {
     }
     if (!addressData.street_address.trim() || !addressData.city.trim()) {
       setErrorMessage('Please enter your street address and city.');
+      return;
+    }
+    if (role === 'processor' && !documentNumber.trim()) {
+      setErrorMessage('Please provide your compliance certificate/license number for admin verification.');
       return;
     }
 
@@ -61,6 +77,9 @@ export const OnboardingScreen: React.FC = () => {
       entity_type: entityType,
       facility_type: role === 'processor' ? facilityType : undefined,
       price_per_ton: role === 'processor' ? pricePerTon : undefined,
+      document_type: role === 'processor' ? documentType : undefined,
+      document_number: role === 'processor' ? documentNumber : undefined,
+      document_name: role === 'processor' ? (documentFileName || 'Compliance_Certificate.pdf') : undefined,
       addressData,
     });
 
@@ -190,12 +209,19 @@ export const OnboardingScreen: React.FC = () => {
               />
             </div>
 
-            {/* 4. Processor Specific Details */}
+            {/* 4. Processor Specific Details & Verification Documents */}
             {role === 'processor' && (
-              <div className="space-y-3.5 pt-2 border-t border-slate-800 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
-                <label className="block text-xs font-bold uppercase tracking-wider text-amber-400">
-                  Facility Intake Settings
-                </label>
+              <div className="space-y-4 pt-3 border-t border-slate-800 bg-slate-950/70 p-5 rounded-2xl border border-amber-500/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <Factory className="w-4 h-4" />
+                    <span>Facility Intake & Verification Settings</span>
+                  </span>
+                  <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded-full font-semibold">
+                    Admin Approval Required
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-medium text-slate-400 mb-1">
@@ -227,6 +253,65 @@ export const OnboardingScreen: React.FC = () => {
                         className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Compliance & Verification Document Upload Section */}
+                <div className="pt-3 border-t border-slate-800 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-bold text-slate-200">
+                      Compliance & Certification Document (For Admin Verification)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-400 mb-1">
+                        Document Classification <span className="text-amber-400">*</span>
+                      </label>
+                      <select
+                        value={documentType}
+                        onChange={(e) => setDocumentType(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                      >
+                        <option value="SPCB Consent to Operate (CTO)">State Pollution Board (SPCB) CTO License</option>
+                        <option value="Factory / Industrial Kiln Permit">Factory License / Pyrolysis Permit</option>
+                        <option value="MSME / GST Registration Certificate">MSME / GST Registration Certificate</option>
+                        <option value="EBC / Biochar Quality Certification">European Biochar (EBC) / ISO Standard</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-400 mb-1">
+                        Document / License Number <span className="text-amber-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={documentNumber}
+                        onChange={(e) => setDocumentNumber(e.target.value)}
+                        required={role === 'processor'}
+                        placeholder="e.g. SPCB/CTO/2026/0892"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* File Upload simulation */}
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-400 mb-1">
+                      Upload Certificate Copy (PDF / Image)
+                    </label>
+                    <label className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-slate-700 hover:border-amber-500/60 bg-slate-900/60 cursor-pointer transition text-xs text-slate-400 hover:text-white">
+                      <Upload className="w-4 h-4 text-amber-400" />
+                      <span>{documentFileName ? `Uploaded: ${documentFileName}` : 'Choose Certificate File (PDF / PNG / JPG)'}</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
                 </div>
               </div>

@@ -5,9 +5,10 @@ import { AddWasteModal } from './AddWasteModal';
 
 interface ProducerDashboardProps {
   onOpenCertificate: () => void;
+  onOpenProfile?: () => void;
 }
 
-export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCertificate }) => {
+export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCertificate, onOpenProfile }) => {
   const { currentUser, listings, pickupRequests, ledger, setSelectedCertificate, refreshData } = useApp();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -52,6 +53,14 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({ onOpenCert
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
+          {onOpenProfile && (
+            <button
+              onClick={onOpenProfile}
+              className="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition"
+            >
+              Producer Profile
+            </button>
+          )}
           <button
             onClick={handleRefresh}
             title="Refresh database"

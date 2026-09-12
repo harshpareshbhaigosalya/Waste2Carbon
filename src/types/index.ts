@@ -1,4 +1,4 @@
-export type UserRole = 'producer' | 'processor';
+export type UserRole = 'producer' | 'processor' | 'admin';
 
 export type EntityType = 
   | 'farm' 
@@ -6,7 +6,8 @@ export type EntityType =
   | 'municipality' 
   | 'household' 
   | 'biochar_facility' 
-  | 'biogas_facility';
+  | 'biogas_facility'
+  | 'admin';
 
 export type WasteCategory = 'dry_organic' | 'wet_organic';
 
@@ -27,9 +28,17 @@ export interface UserProfile {
   latitude?: number;
   longitude?: number;
   onboarded: boolean;
+  verified?: boolean;
   facility_type?: string;
   price_per_ton?: number;
   carbon_credits_balance: number;
+  
+  // Verification Document Details for Processors
+  document_name?: string;
+  document_type?: string;
+  document_number?: string;
+  document_url?: string;
+
   created_at?: string;
   updated_at?: string;
 }
@@ -54,7 +63,7 @@ export interface WasteListing {
   latitude: number;
   longitude: number;
   estimated_co2_sequestered: number;
-  estimated_value_usd: number;
+  estimated_value_usd: number; // stores INR value
   status: 'available' | 'requested' | 'accepted' | 'collected';
   assigned_processor_id?: string;
   assigned_processor_name?: string;
