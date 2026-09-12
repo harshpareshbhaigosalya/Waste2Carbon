@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AddWasteModal } from './AddWasteModal';
+import { NegotiationChatModal } from '../NegotiationChatModal';
 import { PickupRequest } from '../../types';
 
 interface ProducerDashboardProps {
@@ -47,12 +48,8 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Negotiation modal / state
-  const [negotiatingReq, setNegotiatingReq] = useState<PickupRequest | null>(null);
-  const [counterPriceInput, setCounterPriceInput] = useState<number>(2800);
-  const [negotiationNote, setNegotiationNote] = useState('');
-  const [isNegotiating, setIsNegotiating] = useState(false);
-  const [negotiationFeedback, setNegotiationFeedback] = useState('');
+  // Negotiation chat modal state
+  const [chatReq, setChatReq] = useState<PickupRequest | null>(null);
 
   // Listings for this producer
   const myListings = listings.filter((l) => l.producer_id === currentUser?.id);
@@ -71,28 +68,6 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
     setIsRefreshing(true);
     await refreshData();
     setIsRefreshing(false);
-  };
-
-  const handleSendCounterOffer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!negotiatingReq) return;
-
-    setIsNegotiating(true);
-    setNegotiationFeedback('');
-
-    const res = await negotiatePrice(negotiatingReq.id, Number(counterPriceInput), negotiationNote);
-    setIsNegotiating(false);
-
-    if (res.success) {
-      setNegotiationFeedback(res.message);
-      setTimeout(() => {
-        setNegotiatingReq(null);
-        setNegotiationFeedback('');
-        setNegotiationNote('');
-      }, 1500);
-    } else {
-      setNegotiationFeedback(res.message);
-    }
   };
 
   const handleRespondToCounter = async (reqId: string, accept: boolean) => {
@@ -291,6 +266,23 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                     </span>
                   </div>
 
+                  {/* Quality Inspection Photo preview if available */}
+                  {req.listing_photo_url && (
+                    <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200">
+                      <img
+                        src={req.listing_photo_url}
+                        alt="Quality Inspection"
+                        className="w-14 h-12 rounded-lg object-cover border border-slate-200 shadow-2xs"
+                      />
+                      <div className="text-xs space-y-0.5">
+                        <span className="text-[10px] text-slate-500 font-medium block">Inspected Quality:</span>
+                        <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
+                          {req.quality_grade || 'Grade B (Standard)'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Price comparison card */}
                   <div className="bg-white p-3 rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-xs">
                     <div>
@@ -319,13 +311,13 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                       <div className="flex items-center gap-2 pt-1">
                         <button
                           onClick={() => handleRespondToCounter(req.id, true)}
-                          className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-1.5 rounded-lg flex items-center justify-center gap-1"
+                          className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 cursor-pointer"
                         >
                           <Check className="w-3.5 h-3.5" /> Accept Price
                         </button>
                         <button
                           onClick={() => handleRespondToCounter(req.id, false)}
-                          className="px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-1.5 rounded-lg text-xs"
+                          className="px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-1.5 rounded-lg text-xs cursor-pointer"
                         >
                           Decline
                         </button>
@@ -340,17 +332,14 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                     </div>
                   )}
 
-                  {/* Negotiation trigger button if status is none or open */}
-                  {req.status === 'pending' && req.negotiation_status !== 'agreed' && (
+                  {/* Two-Way Chat & Negotiation trigger button */}
+                  {req.status === 'pending' && (
                     <button
-                      onClick={() => {
-                        setNegotiatingReq(req);
-                        setCounterPriceInput((req.counter_price_per_ton || req.proposed_price_per_ton) + 300);
-                      }}
-                      className="w-full py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-2xs"
+                      onClick={() => setChatReq(req)}
+                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-900 hover:to-emerald-800 text-white text-xs font-black flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
                     >
-                      <ArrowUpDown className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Negotiate Higher Price (Counter Offer)</span>
+                      <MessageSquare className="w-4 h-4 text-amber-300" />
+                      <span>💬 Chat & Negotiate Price</span>
                     </button>
                   )}
                 </div>
@@ -370,7 +359,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
             <p className="text-sm font-medium text-slate-600">You have not listed any waste batches yet.</p>
             <button
               onClick={() => setIsAddOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 shadow-xs transition"
+              className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 shadow-xs transition cursor-pointer"
             >
               + Create First Waste Listing
             </button>
@@ -403,6 +392,23 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                   </span>
                 </div>
 
+                {/* Quality photo thumbnail */}
+                {listing.photo_url && (
+                  <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200">
+                    <img
+                      src={listing.photo_url}
+                      alt="Quality Inspection"
+                      className="w-14 h-12 rounded-lg object-cover border border-slate-200 shadow-2xs"
+                    />
+                    <div className="text-xs space-y-0.5">
+                      <span className="text-[10px] text-slate-500 font-medium block">Quality Inspection Photo:</span>
+                      <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
+                        {listing.quality_grade || 'Grade B (Standard)'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-2 text-xs bg-white p-2.5 rounded-xl border border-slate-200">
                   <div>
                     <span className="text-[10px] text-slate-500 block">Carbon Sequestration</span>
@@ -423,9 +429,13 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                   <span className="truncate">{listing.formatted_address || `${listing.city}, ${listing.state}`}</span>
                 </div>
 
-                {listing.assigned_processor_name && (
+                {listing.assigned_processor_name ? (
                   <p className="text-xs text-slate-600">
                     Assigned Buyer: <strong className="text-slate-900">{listing.assigned_processor_name}</strong>
+                  </p>
+                ) : (
+                  <p className="text-xs text-amber-800 font-medium bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
+                    Listed on Open Marketplace · Available for any facility to bid
                   </p>
                 )}
 
@@ -437,7 +447,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                         if (entry) setSelectedCertificate(entry);
                         onOpenCertificate();
                       }}
-                      className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition"
+                      className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition cursor-pointer"
                     >
                       <FileCheck className="w-3.5 h-3.5 text-emerald-700" />
                       <span>View Carbon Certificate</span>
@@ -450,94 +460,13 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
         )}
       </div>
 
-      {/* Negotiation Counter-Offer Modal */}
-      {negotiatingReq && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <ArrowUpDown className="w-5 h-5 text-amber-600" />
-                <span>Negotiate Selling Price</span>
-              </h3>
-              <button
-                onClick={() => setNegotiatingReq(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-3.5 text-xs space-y-1">
-              <p className="text-slate-700 font-medium">Batch: <strong>{negotiatingReq.listing_title}</strong></p>
-              <p className="text-slate-700">Buyer Plant: <strong>{negotiatingReq.processor_name}</strong></p>
-              <p className="text-slate-700">
-                Current Plant Offer: <strong>₹{negotiatingReq.proposed_price_per_ton.toLocaleString('en-IN')}/ton</strong>
-              </p>
-            </div>
-
-            <form onSubmit={handleSendCounterOffer} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Your Asking Price (₹ / Ton)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-amber-700 font-bold text-base">₹</span>
-                  <input
-                    type="number"
-                    step="50"
-                    min="500"
-                    max="20000"
-                    value={counterPriceInput}
-                    onChange={(e) => setCounterPriceInput(Number(e.target.value))}
-                    required
-                    className="w-full bg-slate-50 border border-slate-300 rounded-2xl pl-8 pr-4 py-2.5 text-lg font-black text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
-                  />
-                </div>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Total for {negotiatingReq.quantity_tons} tons: ₹
-                  {Math.round(counterPriceInput * negotiatingReq.quantity_tons).toLocaleString('en-IN')}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
-                  Note to Facility Operator (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={negotiationNote}
-                  onChange={(e) => setNegotiationNote(e.target.value)}
-                  placeholder="e.g. High dry matter quality, baled & ready for quick loading"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-600"
-                />
-              </div>
-
-              {negotiationFeedback && (
-                <p className="text-xs font-semibold text-emerald-800 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
-                  {negotiationFeedback}
-                </p>
-              )}
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setNegotiatingReq(null)}
-                  className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800 font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isNegotiating}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isNegotiating ? 'Submitting to Supabase...' : 'Submit Counter Offer'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* Two-Way Negotiation Chat Modal */}
+      {chatReq && (
+        <NegotiationChatModal
+          isOpen={Boolean(chatReq)}
+          onClose={() => setChatReq(null)}
+          request={chatReq}
+        />
       )}
 
       <AddWasteModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />

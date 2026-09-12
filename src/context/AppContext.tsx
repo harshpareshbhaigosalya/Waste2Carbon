@@ -6,6 +6,8 @@ import {
   PickupRequest,
   CarbonLedgerEntry,
   AddressData,
+  NegotiationMessage,
+  NegotiationStatus,
 } from '../types';
 import { calculateCarbonMetrics } from '../lib/carbonCalculator';
 import { supabase } from '../lib/supabase';
@@ -36,6 +38,9 @@ interface AppContextType {
     expected_ready_date: string;
     addressData: AddressData;
     processor_id?: string;
+    photo_url?: string;
+    quality_grade?: 'Grade A (Low Moisture)' | 'Grade B (Standard)' | 'Grade C (Mixed / High Moisture)';
+    quality_notes?: string;
   }) => Promise<{ success: boolean; message: string }>;
 
   acceptPickupRequest: (requestId: string) => Promise<void>;
@@ -43,7 +48,9 @@ interface AppContextType {
 
   // Negotiation Operations
   negotiatePrice: (requestId: string, counterPrice: number, notes?: string) => Promise<{ success: boolean; message: string }>;
+  sendNegotiationMessage: (requestId: string, messageText: string, counterPrice?: number) => Promise<{ success: boolean; message: string }>;
   respondToNegotiation: (requestId: string, accept: boolean) => Promise<{ success: boolean; message: string }>;
+  createPickupProposal: (listingId: string, offeredPrice: number, initialMessage?: string) => Promise<{ success: boolean; message: string }>;
 
   // Smart Cluster Bulk Pickup Scheduling
   scheduleClusterPickup: (requestIds: string[], clusterName: string, scheduledDate: string) => Promise<{ success: boolean; message: string }>;
@@ -97,7 +104,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .select('*')
         .order('created_at', { ascending: false });
       if (requestsData) {
-        setPickupRequests(requestsData);
+        const parsed = requestsData.map((r: any) => ({
+          ...r,
+          negotiation_messages: typeof r.negotiation_messages === 'string'
+            ? (() => {
+                try {
+                  return JSON.parse(r.negotiation_messages);
+                } catch {
+                  return [];
+                }
+              })()
+            : Array.isArray(r.negotiation_messages)
+            ? r.negotiation_messages
+            : [],
+        }));
+        setPickupRequests(parsed);
       }
 
       // Fetch carbon ledger
@@ -486,6 +507,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     expected_ready_date: string;
     addressData: AddressData;
     processor_id?: string;
+    photo_url?: string;
+    quality_grade?: 'Grade A (Low Moisture)' | 'Grade B (Standard)' | 'Grade C (Mixed / High Moisture)';
+    quality_notes?: string;
   }): Promise<{ success: boolean; message: string }> => {
     if (!currentUser) return { success: false, message: 'Must be signed in to add listing' };
 
@@ -525,6 +549,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       longitude: data.addressData.longitude,
       estimated_co2_sequestered: metrics.totalCO2e,
       estimated_value_usd: metrics.estimatedMarketValueINR,
+      photo_url: data.photo_url,
+      quality_grade: data.quality_grade,
+      quality_notes: data.quality_notes,
       status,
       assigned_processor_id: data.processor_id || undefined,
       assigned_processor_name: assignedProcessorName || undefined,
@@ -540,10 +567,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (data.processor_id) {
       const proc = allUsers.find((u) => u.id === data.processor_id);
       const initialPrice = proc?.price_per_ton || 2500;
+      const initialMessage: NegotiationMessage = {
+        id: `msg-${Date.now()}`,
+        sender_id: currentUser.id,
+        sender_name: currentUser.full_name,
+        sender_role: 'producer',
+        message: data.quality_notes
+          ? `Listing created (${data.quality_grade || 'Standard Quality'}). Quality note: ${data.quality_notes}`
+          : `Listing created for ${data.quantity} ${data.unit} (${data.quality_grade || 'Standard Quality'}). Ready for inspection and pickup.`,
+        offered_price: initialPrice,
+        created_at: new Date().toISOString(),
+      };
+
       const newRequest: PickupRequest = {
         id: `req-${Date.now()}`,
         listing_id: newListing.id,
         listing_title: newListing.title,
+        listing_photo_url: data.photo_url,
+        quality_grade: data.quality_grade,
         producer_id: currentUser.id,
         producer_name: currentUser.full_name,
         producer_phone: currentUser.phone,
@@ -556,6 +597,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         proposed_price_per_ton: initialPrice,
         original_price_per_ton: initialPrice,
         negotiation_status: 'none',
+        negotiation_messages: [initialMessage],
         verification_code: otp,
         status: 'pending',
         credits_awarded: 0,
@@ -569,25 +611,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Waste listing saved directly to Supabase!' };
   };
 
-  // 9. Price Negotiation: Producer or Processor submits a counter-offer
-  const negotiatePrice = async (
+  // 9. Send Negotiation Chat Message & Optional Counter-Offer Price
+  const sendNegotiationMessage = async (
     requestId: string,
-    counterPrice: number,
-    notes?: string
+    messageText: string,
+    counterPrice?: number
   ): Promise<{ success: boolean; message: string }> => {
     if (!currentUser) return { success: false, message: 'Please sign in first' };
     const req = pickupRequests.find((r) => r.id === requestId);
     if (!req) return { success: false, message: 'Request not found' };
 
     const isProducer = currentUser.id === req.producer_id;
-    const statusVal = isProducer ? 'countered_by_producer' : 'countered_by_processor';
+    const senderRole: 'producer' | 'processor' = isProducer ? 'producer' : 'processor';
+    
+    let statusVal = req.negotiation_status || 'proposed';
+    if (counterPrice !== undefined && counterPrice > 0) {
+      statusVal = isProducer ? 'countered_by_producer' : 'countered_by_processor';
+    }
 
-    const updates: Partial<PickupRequest> = {
-      counter_price_per_ton: counterPrice,
-      negotiation_status: statusVal,
-      last_negotiated_by: isProducer ? 'producer' : 'processor',
-      negotiation_notes: notes || undefined,
+    const newMsg: NegotiationMessage = {
+      id: `msg-${Date.now()}`,
+      sender_id: currentUser.id,
+      sender_name: currentUser.full_name,
+      sender_role: senderRole,
+      message: messageText,
+      offered_price: counterPrice,
+      created_at: new Date().toISOString(),
     };
+
+    const currentMessages: NegotiationMessage[] = Array.isArray(req.negotiation_messages)
+      ? [...req.negotiation_messages]
+      : [];
+    currentMessages.push(newMsg);
+
+    const updates: any = {
+      negotiation_messages: currentMessages,
+      negotiation_status: statusVal,
+      last_negotiated_by: senderRole,
+      negotiation_notes: messageText,
+    };
+
+    if (counterPrice !== undefined && counterPrice > 0) {
+      updates.counter_price_per_ton = counterPrice;
+    }
 
     const { error } = await supabase.from('pickup_requests').update(updates).eq('id', requestId);
     if (error) {
@@ -597,8 +663,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await refreshData();
     return {
       success: true,
-      message: `Counter-offer of ₹${counterPrice.toLocaleString('en-IN')}/ton sent successfully!`,
+      message: counterPrice
+        ? `Offer of ₹${counterPrice.toLocaleString('en-IN')}/ton sent with note!`
+        : 'Message sent to partner!',
     };
+  };
+
+  // Legacy helper: Producer or Processor submits a counter-offer
+  const negotiatePrice = async (
+    requestId: string,
+    counterPrice: number,
+    notes?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    return sendNegotiationMessage(
+      requestId,
+      notes || `Proposed counter rate of ₹${counterPrice.toLocaleString('en-IN')}/ton.`,
+      counterPrice
+    );
   };
 
   // 10. Respond to negotiation (Agree/Accept or Reject)
@@ -606,24 +687,131 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     requestId: string,
     accept: boolean
   ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser) return { success: false, message: 'Please sign in first' };
     const req = pickupRequests.find((r) => r.id === requestId);
     if (!req) return { success: false, message: 'Request not found' };
 
+    const isProducer = currentUser.id === req.producer_id;
+    const currentMessages: NegotiationMessage[] = Array.isArray(req.negotiation_messages)
+      ? [...req.negotiation_messages]
+      : [];
+
     if (accept) {
       const finalPrice = req.counter_price_per_ton || req.proposed_price_per_ton;
-      const updates: Partial<PickupRequest> = {
+      const acceptMsg: NegotiationMessage = {
+        id: `msg-${Date.now()}`,
+        sender_id: currentUser.id,
+        sender_name: currentUser.full_name,
+        sender_role: isProducer ? 'producer' : 'processor',
+        message: `Accepted price of ₹${finalPrice.toLocaleString('en-IN')}/ton. Deal agreed!`,
+        offered_price: finalPrice,
+        created_at: new Date().toISOString(),
+      };
+      currentMessages.push(acceptMsg);
+
+      const updates: any = {
         proposed_price_per_ton: finalPrice,
         negotiation_status: 'agreed',
+        negotiation_messages: currentMessages,
       };
       await supabase.from('pickup_requests').update(updates).eq('id', requestId);
     } else {
-      await supabase.from('pickup_requests').update({ negotiation_status: 'rejected' }).eq('id', requestId);
+      const declineMsg: NegotiationMessage = {
+        id: `msg-${Date.now()}`,
+        sender_id: currentUser.id,
+        sender_name: currentUser.full_name,
+        sender_role: isProducer ? 'producer' : 'processor',
+        message: `Declined the counter-offer. Open to a revised proposal.`,
+        created_at: new Date().toISOString(),
+      };
+      currentMessages.push(declineMsg);
+
+      await supabase
+        .from('pickup_requests')
+        .update({
+          negotiation_status: 'rejected',
+          negotiation_messages: currentMessages,
+        })
+        .eq('id', requestId);
     }
 
     await refreshData();
     return {
       success: true,
-      message: accept ? 'Counter-offer agreed! Price updated.' : 'Counter-offer declined.',
+      message: accept ? 'Counter-offer agreed! Price locked.' : 'Counter-offer declined.',
+    };
+  };
+
+  // 11. Processor claims an open marketplace listing and initiates offer/negotiation
+  const createPickupProposal = async (
+    listingId: string,
+    offeredPrice: number,
+    initialMessage?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser || currentUser.role !== 'processor') {
+      return { success: false, message: 'Only registered processors can submit buying proposals' };
+    }
+    const listing = listings.find((l) => l.id === listingId);
+    if (!listing) return { success: false, message: 'Listing not found in database' };
+
+    const firstMsg: NegotiationMessage = {
+      id: `msg-${Date.now()}`,
+      sender_id: currentUser.id,
+      sender_name: currentUser.full_name,
+      sender_role: 'processor',
+      message:
+        initialMessage ||
+        `Inspected quality: ${listing.quality_grade || 'Standard'}. Proposing buying rate of ₹${offeredPrice.toLocaleString('en-IN')}/ton.`,
+      offered_price: offeredPrice,
+      created_at: new Date().toISOString(),
+    };
+
+    const newRequest: PickupRequest = {
+      id: `req-${Date.now()}`,
+      listing_id: listing.id,
+      listing_title: listing.title,
+      listing_photo_url: listing.photo_url,
+      quality_grade: listing.quality_grade,
+      producer_id: listing.producer_id,
+      producer_name: listing.producer_name,
+      producer_phone: listing.producer_phone,
+      producer_address: listing.formatted_address,
+      processor_id: currentUser.id,
+      processor_name: currentUser.full_name,
+      quantity_tons: listing.quantity_in_tons,
+      waste_category: listing.waste_category,
+      proposed_pickup_date: listing.expected_ready_date,
+      proposed_price_per_ton: offeredPrice,
+      original_price_per_ton: offeredPrice,
+      counter_price_per_ton: offeredPrice,
+      negotiation_status: 'countered_by_processor',
+      last_negotiated_by: 'processor',
+      negotiation_notes: firstMsg.message,
+      negotiation_messages: [firstMsg],
+      verification_code: listing.verification_otp,
+      status: 'pending',
+      credits_awarded: 0,
+      created_at: new Date().toISOString(),
+    };
+
+    const { error: reqErr } = await supabase.from('pickup_requests').insert([newRequest]);
+    if (reqErr) {
+      return { success: false, message: `Database error: ${reqErr.message}` };
+    }
+
+    await supabase
+      .from('waste_listings')
+      .update({
+        assigned_processor_id: currentUser.id,
+        assigned_processor_name: currentUser.full_name,
+        status: 'requested',
+      })
+      .eq('id', listing.id);
+
+    await refreshData();
+    return {
+      success: true,
+      message: 'Proposal submitted! The producer can now inspect and negotiate with you.',
     };
   };
 
@@ -771,7 +959,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         acceptPickupRequest,
         verifyPickupHandshake,
         negotiatePrice,
+        sendNegotiationMessage,
         respondToNegotiation,
+        createPickupProposal,
         scheduleClusterPickup,
         verifyProcessor,
         updateUserProfile,

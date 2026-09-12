@@ -1,5 +1,21 @@
-import React, { useState, useMemo } from 'react';
-import { X, Sprout, CheckCircle2, Calendar, Truck, AlertCircle, Loader2, ArrowUpDown, Sparkles } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import {
+  X,
+  Sprout,
+  CheckCircle2,
+  Calendar,
+  Truck,
+  AlertCircle,
+  Loader2,
+  Camera,
+  Upload,
+  Trash2,
+  Layers,
+  Sparkles,
+  ShieldCheck,
+  Video,
+  Eye,
+} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { WasteCategory, WasteUnit, AddressData } from '../../types';
 import { calculateCarbonMetrics } from '../../lib/carbonCalculator';
@@ -23,6 +39,27 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
     return d.toISOString().split('T')[0];
   });
 
+  // Quality Inspection State
+  const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [qualityGrade, setQualityGrade] = useState<
+    'Grade A (Low Moisture)' | 'Grade B (Standard)' | 'Grade C (Mixed / High Moisture)'
+  >('Grade B (Standard)');
+  const [qualityNotes, setQualityNotes] = useState('');
+
+  // Live Camera Stream State
+  const [showLiveCam, setShowLiveCam] = useState(false);
+  const [camError, setCamError] = useState('');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Hidden file/camera inputs
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Destination option: 'marketplace' or 'specific'
+  const [allocationMode, setAllocationMode] = useState<'marketplace' | 'specific'>('specific');
+  const [selectedProcessorId, setSelectedProcessorId] = useState<string>('');
+
   // Pre-fill location from producer's profile
   const [addressData, setAddressData] = useState<AddressData>({
     street_address: currentUser?.street_address || '',
@@ -34,7 +71,6 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
     longitude: currentUser?.longitude || 77.2090,
   });
 
-  const [selectedProcessorId, setSelectedProcessorId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successNotice, setSuccessNotice] = useState('');
@@ -47,18 +83,112 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
   // Find registered processors in database matching category
   const availableProcessors = useMemo(() => {
     return allUsers.filter(
-      (u) => u.role === 'processor' && (!u.facility_type || (category === 'dry_organic' ? u.facility_type === 'biochar' : u.facility_type === 'biogas'))
+      (u) =>
+        u.role === 'processor' &&
+        (!u.facility_type ||
+          (category === 'dry_organic' ? u.facility_type === 'biochar' : u.facility_type === 'biogas'))
     );
   }, [allUsers, category]);
 
   // Default select first processor if available
-  React.useEffect(() => {
+  useEffect(() => {
     if (availableProcessors.length > 0 && !selectedProcessorId) {
       setSelectedProcessorId(availableProcessors[0].id);
     }
   }, [availableProcessors, selectedProcessorId]);
 
+  // Stop camera when modal unmounts or live cam closes
+  const stopLiveCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setShowLiveCam(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      stopLiveCamera();
+    };
+  }, []);
+
   if (!isOpen) return null;
+
+  // Start live webcam view
+  const startLiveCamera = async () => {
+    setCamError('');
+    setShowLiveCam(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err: any) {
+      console.warn('Live camera error:', err);
+      setCamError('Unable to open live webcam stream. Please use the "Take Photo" button or upload file.');
+      setShowLiveCam(false);
+      // Fallback: trigger native camera input
+      cameraInputRef.current?.click();
+    }
+  };
+
+  // Capture snapshot from live video stream
+  const captureSnapshot = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      setPhotoUrl(dataUrl);
+    }
+    stopLiveCamera();
+  };
+
+  // Compress image file to lightweight Base64
+  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 1000;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        setPhotoUrl(dataUrl);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +207,9 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
     setIsSubmitting(true);
 
     const title = `${quantity} ${unit.toUpperCase()} of ${subcategoryName}`;
+    const destinationProcessorId =
+      allocationMode === 'specific' && selectedProcessorId ? selectedProcessorId : undefined;
+
     const res = await addListing({
       title,
       waste_category: category,
@@ -85,7 +218,10 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
       unit,
       expected_ready_date: expectedDate,
       addressData,
-      processor_id: selectedProcessorId || undefined,
+      processor_id: destinationProcessorId,
+      photo_url: photoUrl || undefined,
+      quality_grade: qualityGrade,
+      quality_notes: qualityNotes.trim() || undefined,
     });
 
     setIsSubmitting(false);
@@ -113,12 +249,15 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
             <div>
               <h3 className="font-black text-lg text-slate-900">List Organic Waste Batch</h3>
               <p className="text-xs text-slate-500">
-                Connect directly with certified biochar & biogas conversion plants
+                Upload actual quality photos and negotiate optimal rates with verified plants
               </p>
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => {
+              stopLiveCamera();
+              onClose();
+            }}
             className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
           >
             <X className="w-5 h-5" />
@@ -134,6 +273,13 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
             </div>
           )}
 
+          {camError && (
+            <div className="bg-amber-50 border border-amber-300 text-amber-900 text-xs p-3 rounded-xl flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
+              <span>{camError}</span>
+            </div>
+          )}
+
           {successNotice && (
             <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs p-3 rounded-xl flex items-center gap-2 font-bold">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -141,10 +287,174 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
             </div>
           )}
 
-          {/* 1. Waste Category */}
+          {/* 1. In-App Camera / Quality Inspection Photo */}
+          <div className="bg-slate-50 border-2 border-dashed border-amber-200 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-amber-700" />
+                <span>Waste Quality Photo (Camera Inspection)</span>
+              </label>
+              <span className="text-[11px] text-amber-800 font-bold bg-amber-100 px-2 py-0.5 rounded-full">
+                Enables Fair Quality-Based Price Negotiation
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Capture or upload actual photos of your crop stubble or slurry so buyers can inspect purity, moisture, and agree on fair pricing before pickup.
+            </p>
+
+            {/* Live Camera Viewfinder if active */}
+            {showLiveCam && (
+              <div className="relative rounded-2xl overflow-hidden bg-black border-2 border-amber-400 aspect-video flex flex-col items-center justify-center">
+                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                <div className="absolute bottom-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={captureSnapshot}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Capture Snapshot</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stopLiveCamera}
+                    className="bg-slate-900/80 hover:bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Photo Preview if captured */}
+            {photoUrl && !showLiveCam ? (
+              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 bg-white p-2 flex items-center gap-4">
+                <img
+                  src={photoUrl}
+                  alt="Waste Inspection"
+                  className="w-28 h-24 object-cover rounded-xl border border-slate-200 shrink-0 shadow-sm"
+                />
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-xs">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Quality Photo Attached</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Buyers will inspect this image to verify moisture and purity during price negotiations.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoUrl('')}
+                    className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 pt-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Remove & Retake Photo
+                  </button>
+                </div>
+              </div>
+            ) : !showLiveCam ? (
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                {/* Native Smartphone Camera input */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleImageFile}
+                />
+                {/* Regular File Upload */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageFile}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                >
+                  <Camera className="w-4 h-4 text-amber-100" />
+                  <span>Open Camera / Take Photo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={startLiveCamera}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                >
+                  <Video className="w-4 h-4 text-emerald-200" />
+                  <span>Live Webcam</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200 transition cursor-pointer"
+                >
+                  <Upload className="w-4 h-4 text-slate-500" />
+                  <span>Upload Image</span>
+                </button>
+              </div>
+            ) : null}
+
+            {/* Quality Grade Radios */}
+            <div className="pt-2 border-t border-slate-200 space-y-2">
+              <label className="block text-xs font-bold text-slate-700">Self-Assessed Quality Condition</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {[
+                  {
+                    grade: 'Grade A (Low Moisture)',
+                    badge: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+                    desc: 'Sun-dried, <12% moisture, clean straw',
+                  },
+                  {
+                    grade: 'Grade B (Standard)',
+                    badge: 'bg-sky-100 text-sky-900 border-sky-300',
+                    desc: 'Fresh harvest, 12-20% moisture',
+                  },
+                  {
+                    grade: 'Grade C (Mixed / High Moisture)',
+                    badge: 'bg-amber-100 text-amber-900 border-amber-300',
+                    desc: 'Wet or mixed residue, >20% moisture',
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.grade}
+                    type="button"
+                    onClick={() => setQualityGrade(item.grade as any)}
+                    className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                      qualityGrade === item.grade
+                        ? 'border-emerald-600 bg-white shadow-xs ring-2 ring-emerald-500/20'
+                        : 'border-slate-200 bg-white/60 hover:bg-white'
+                    }`}
+                  >
+                    <span className="text-xs font-bold block text-slate-900">{item.grade}</span>
+                    <span className="text-[10px] text-slate-500">{item.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Quality Notes */}
+              <div>
+                <input
+                  type="text"
+                  value={qualityNotes}
+                  onChange={(e) => setQualityNotes(e.target.value)}
+                  placeholder="Optional quality notes (e.g. baled into 25kg bundles, stored indoors)"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Waste Category */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              1. Waste Category & Type
+              2. Waste Category & Type
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -196,7 +506,7 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
             />
           </div>
 
-          {/* 2. Quantity & Expected Date */}
+          {/* 3. Quantity & Expected Date */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Quantity</label>
@@ -254,61 +564,97 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                 ₹{carbon.estimatedMarketValueINR.toLocaleString('en-IN')}
               </span>
               <span className="text-[10px] text-amber-700 block font-semibold mt-0.5">
-                Can be negotiated with buyer!
+                Open for interactive two-way negotiation!
               </span>
             </div>
           </div>
 
-          {/* 3. Choose Destination Processor */}
+          {/* 4. Choose Destination: Open Marketplace vs Specific Processor */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
               <Truck className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Select Destination Conversion Facility</span>
+              <span>Listing Allocation & Negotiation Mode</span>
             </label>
 
-            {availableProcessors.length === 0 ? (
-              <p className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-slate-200">
-                No matching verified processors in database yet. Listing will be posted to open marketplace.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {availableProcessors.map((proc) => (
-                  <label
-                    key={proc.id}
-                    className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition ${
-                      selectedProcessorId === proc.id
-                        ? 'border-emerald-600 bg-emerald-50/60 shadow-xs'
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <input
-                        type="radio"
-                        name="processorSelection"
-                        checked={selectedProcessorId === proc.id}
-                        onChange={() => setSelectedProcessorId(proc.id)}
-                        className="text-emerald-600 focus:ring-emerald-500"
-                      />
-                      <div>
-                        <p className="font-bold text-xs text-slate-900">{proc.full_name}</p>
-                        <p className="text-[11px] text-slate-500">
-                          {proc.city ? `${proc.city}, ${proc.state}` : proc.formatted_address || 'India'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-500 block">Offer Buying Rate</span>
-                      <span className="font-black text-emerald-700 text-sm">
-                        ₹{proc.price_per_ton ? proc.price_per_ton.toLocaleString('en-IN') : '2,500'}/t
-                      </span>
-                    </div>
-                  </label>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setAllocationMode('marketplace')}
+                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer ${
+                  allocationMode === 'marketplace'
+                    ? 'border-emerald-600 bg-emerald-50/70 font-bold'
+                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                }`}
+              >
+                <span className="text-xs text-slate-900 block font-black">Open Marketplace</span>
+                <span className="text-[10px] text-slate-500">
+                  Allow multiple nearby facilities to inspect photos and bid/negotiate
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAllocationMode('specific')}
+                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer ${
+                  allocationMode === 'specific'
+                    ? 'border-emerald-600 bg-emerald-50/70 font-bold'
+                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                }`}
+              >
+                <span className="text-xs text-slate-900 block font-black">Select Specific Facility</span>
+                <span className="text-[10px] text-slate-500">
+                  Directly send to one plant and negotiate price privately
+                </span>
+              </button>
+            </div>
+
+            {allocationMode === 'specific' && (
+              <>
+                {availableProcessors.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    No matching verified processors in database yet. Listing will be posted to open marketplace.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {availableProcessors.map((proc) => (
+                      <label
+                        key={proc.id}
+                        className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition ${
+                          selectedProcessorId === proc.id
+                            ? 'border-emerald-600 bg-emerald-50/60 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <input
+                            type="radio"
+                            name="processorSelection"
+                            checked={selectedProcessorId === proc.id}
+                            onChange={() => setSelectedProcessorId(proc.id)}
+                            className="text-emerald-600 focus:ring-emerald-500"
+                          />
+                          <div>
+                            <p className="font-bold text-xs text-slate-900">{proc.full_name}</p>
+                            <p className="text-[11px] text-slate-500">
+                              {proc.city ? `${proc.city}, ${proc.state}` : proc.formatted_address || 'India'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-slate-500 block">Baseline Rate</span>
+                          <span className="font-black text-emerald-700 text-sm">
+                            ₹{proc.price_per_ton ? proc.price_per_ton.toLocaleString('en-IN') : '2,500'}/t
+                          </span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
-          {/* 4. Location Picker with Interactive Map */}
+          {/* 5. Location Picker with Interactive Map */}
           <div className="pt-2 border-t border-slate-200">
             <LocationPicker
               value={addressData}
@@ -321,8 +667,11 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
           <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800"
+              onClick={() => {
+                stopLiveCamera();
+                onClose();
+              }}
+              className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
             >
               Cancel
             </button>
@@ -337,7 +686,7 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                   <span>Saving to Supabase...</span>
                 </>
               ) : (
-                <span>Publish Listing to Marketplace</span>
+                <span>Publish Waste Listing</span>
               )}
             </button>
           </div>
@@ -346,3 +695,4 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
     </div>
   );
 };
+

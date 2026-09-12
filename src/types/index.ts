@@ -64,6 +64,9 @@ export interface WasteListing {
   longitude: number;
   estimated_co2_sequestered: number;
   estimated_value_usd: number; // stores INR value
+  photo_url?: string; // Quality inspection photo captured from camera/device
+  quality_grade?: 'Grade A (Low Moisture)' | 'Grade B (Standard)' | 'Grade C (Mixed / High Moisture)';
+  quality_notes?: string;
   status: 'available' | 'requested' | 'accepted' | 'collected';
   assigned_processor_id?: string;
   assigned_processor_name?: string;
@@ -73,10 +76,22 @@ export interface WasteListing {
 
 export type NegotiationStatus = 'none' | 'proposed' | 'countered_by_producer' | 'countered_by_processor' | 'agreed' | 'rejected';
 
+export interface NegotiationMessage {
+  id: string;
+  sender_id: string;
+  sender_name: string;
+  sender_role: 'producer' | 'processor';
+  message: string;
+  offered_price?: number;
+  created_at: string;
+}
+
 export interface PickupRequest {
   id: string;
   listing_id: string;
   listing_title: string;
+  listing_photo_url?: string; // Waste photo forwarded for processor quality review
+  quality_grade?: string;
   producer_id: string;
   producer_name: string;
   producer_phone: string;
@@ -94,6 +109,7 @@ export interface PickupRequest {
   counter_price_per_ton?: number;
   last_negotiated_by?: 'producer' | 'processor';
   negotiation_notes?: string;
+  negotiation_messages?: NegotiationMessage[];
 
   // Smart Cluster & Route Aggregation
   cluster_id?: string;

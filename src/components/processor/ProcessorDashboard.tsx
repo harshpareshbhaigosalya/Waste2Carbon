@@ -18,12 +18,16 @@ import {
   ArrowUpDown,
   Sparkles,
   Send,
+  MessageSquare,
+  Camera,
+  Calendar,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { PickupRequest } from '../../types';
+import { PickupRequest, WasteListing } from '../../types';
 import { SmartClusterView } from './SmartClusterView';
 import { generateWasteClusters, ClusterPoint, WasteCluster } from '../../lib/clusteringOptimizer';
 import { Layers } from 'lucide-react';
+import { NegotiationChatModal } from '../NegotiationChatModal';
 
 interface ProcessorDashboardProps {
   onOpenCertificate: () => void;
@@ -49,9 +53,10 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
     negotiatePrice,
     respondToNegotiation,
     scheduleClusterPickup,
+    createPickupProposal,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'requests' | 'clusters'>('clusters');
+  const [activeTab, setActiveTab] = useState<'requests' | 'clusters' | 'marketplace'>('clusters');
   const [activeHandshakeReq, setActiveHandshakeReq] = useState<PickupRequest | null>(null);
   const [enteredOtp, setEnteredOtp] = useState('');
   const [handshakeError, setHandshakeError] = useState('');
@@ -63,13 +68,23 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
   const [newPrice, setNewPrice] = useState(currentUser?.price_per_ton || 2500);
   const [priceSaved, setPriceSaved] = useState(false);
 
-  // Negotiation Modal
-  const [counterReq, setCounterReq] = useState<PickupRequest | null>(null);
-  const [procCounterPrice, setProcCounterPrice] = useState<number>(2400);
-  const [procNote, setProcNote] = useState('');
+  // Two-Way Negotiation Chat Modal
+  const [chatReq, setChatReq] = useState<PickupRequest | null>(null);
+
+  // Marketplace Proposal Modal state
+  const [proposalListing, setProposalListing] = useState<WasteListing | null>(null);
+  const [proposalPrice, setProposalPrice] = useState<number>(currentUser?.price_per_ton || 2500);
+  const [proposalNote, setProposalNote] = useState('');
+  const [isSubmittingProposal, setIsSubmittingProposal] = useState(false);
+  const [proposalFeedback, setProposalFeedback] = useState('');
 
   // Requests for this processor
   const myRequests = pickupRequests.filter((r) => r.processor_id === currentUser?.id);
+
+  // Open marketplace listings (not assigned to any specific plant)
+  const openMarketplaceListings = listings.filter(
+    (l) => l.status === 'available' && (!l.assigned_processor_id || l.assigned_processor_id === '')
+  );
 
   // Compute Smart Clusters from pending requests & available listings in geographic radius
   const facilityLat = currentUser?.latitude || 28.6139;
@@ -150,12 +165,24 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
     }, 1500);
   };
 
-  const handleSendCounter = async (e: React.FormEvent) => {
+  const handleCreateProposal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!counterReq) return;
-    await negotiatePrice(counterReq.id, Number(procCounterPrice), procNote);
-    setCounterReq(null);
-    setProcNote('');
+    if (!proposalListing) return;
+    setIsSubmittingProposal(true);
+    setProposalFeedback('');
+    const res = await createPickupProposal(proposalListing.id, Number(proposalPrice), proposalNote);
+    setIsSubmittingProposal(false);
+    if (res.success) {
+      setProposalFeedback('Offer submitted! Opening negotiation channel...');
+      setTimeout(() => {
+        setProposalListing(null);
+        setProposalFeedback('');
+        setProposalNote('');
+        setActiveTab('requests');
+      }, 1000);
+    } else {
+      setProposalFeedback(res.message);
+    }
   };
 
   // If Processor is NOT verified yet by Admin, show Under Verification Gate
@@ -396,8 +423,8 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
         </div>
       </div>
 
-      {/* Main Tabs: Smart Bulk Clusters vs Individual Queue */}
-      <div className="flex items-center gap-3">
+      {/* Main Tabs: Smart Bulk Clusters vs Individual Queue vs Open Marketplace */}
+      <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => setActiveTab('clusters')}
           className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition cursor-pointer shadow-xs ${
@@ -422,7 +449,19 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           }`}
         >
           <Truck className="w-4 h-4 text-amber-300" />
-          <span>Individual Requests & Negotiations ({myRequests.length})</span>
+          <span>Direct Requests & Negotiations ({myRequests.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('marketplace')}
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition cursor-pointer shadow-xs ${
+            activeTab === 'marketplace'
+              ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-md'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-amber-400" />
+          <span>Open Marketplace Batches ({openMarketplaceListings.length})</span>
         </button>
       </div>
 
@@ -445,162 +484,281 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
       {/* Tab Content: Individual Requests Table / Cards */}
       {activeTab === 'requests' && (
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
-          <h2 className="text-base font-black text-slate-900">Feedstock Intake & Negotiation Queue</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-black text-slate-900">Feedstock Intake & Negotiation Queue</h2>
+              <p className="text-xs text-slate-500">
+                Inspect actual batch photos, negotiate fair purchase prices, and schedule collections
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+              {myRequests.filter((r) => r.status === 'pending').length} Active Negotiations
+            </span>
+          </div>
 
           {myRequests.length === 0 ? (
             <div className="py-12 text-center text-slate-400 space-y-2">
               <Truck className="w-10 h-10 mx-auto opacity-40 text-amber-600" />
               <p className="text-sm font-medium text-slate-700">No incoming waste requests in database yet.</p>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                When a nearby farmer lists waste and selects your facility, their request will appear here in real time!
+                Check the "Open Marketplace Batches" tab to discover available farmer residue and submit buying offers!
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-            {myRequests.map((req) => {
-              const isCounteredByProducer = req.negotiation_status === 'countered_by_producer';
-              const isCounteredByMe = req.negotiation_status === 'countered_by_processor';
+              {myRequests.map((req) => {
+                const isCounteredByProducer = req.negotiation_status === 'countered_by_producer';
+                const isCounteredByMe = req.negotiation_status === 'countered_by_processor';
 
-              return (
-                <div
-                  key={req.id}
-                  className="bg-[#fcfbf7] border border-slate-200 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-amber-300 transition shadow-sm"
-                >
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-base text-slate-900">{req.listing_title}</h3>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          req.status === 'collected'
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                            : req.status === 'accepted'
-                            ? 'bg-sky-100 text-sky-800 border border-sky-300'
-                            : 'bg-amber-100 text-amber-900 border border-amber-300'
-                        }`}
-                      >
-                        {req.status}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-600">
-                      Producer: <strong>{req.producer_name}</strong> · Phone: <strong>{req.producer_phone}</strong>
-                    </p>
-
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">{req.producer_address}</span>
-                    </div>
-
-                    {/* Price & Negotiation Status Badge */}
-                    <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                      <span className="bg-white border border-slate-200 px-3 py-1 rounded-xl text-slate-700 font-medium">
-                        Current Price: <strong className="text-emerald-700">₹{req.proposed_price_per_ton.toLocaleString('en-IN')}/ton</strong>
-                      </span>
-
-                      {isCounteredByProducer && req.counter_price_per_ton && (
-                        <span className="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
-                          <ArrowUpDown className="w-3.5 h-3.5 text-amber-700" />
-                          Producer countered asking: ₹{req.counter_price_per_ton.toLocaleString('en-IN')}/ton
+                return (
+                  <div
+                    key={req.id}
+                    className="bg-[#fcfbf7] border border-slate-200 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-amber-300 transition shadow-sm"
+                  >
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-base text-slate-900">{req.listing_title}</h3>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            req.status === 'collected'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : req.status === 'accepted'
+                              ? 'bg-sky-100 text-sky-800 border border-sky-300'
+                              : 'bg-amber-100 text-amber-900 border border-amber-300'
+                          }`}
+                        >
+                          {req.status}
                         </span>
-                      )}
+                      </div>
 
-                      {isCounteredByMe && req.counter_price_per_ton && (
-                        <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-xl font-medium">
-                          Your Counter: ₹{req.counter_price_per_ton.toLocaleString('en-IN')}/ton (Pending farmer reply)
-                        </span>
-                      )}
-
-                      {req.negotiation_status === 'agreed' && (
-                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          Agreed Price Locked
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Producer note */}
-                    {req.negotiation_notes && (
-                      <p className="text-xs text-amber-900 italic bg-amber-50 p-2 rounded-lg border border-amber-200">
-                        Farmer Note: "{req.negotiation_notes}"
+                      <p className="text-xs text-slate-600">
+                        Producer: <strong>{req.producer_name}</strong> · Phone: <strong>{req.producer_phone}</strong> · Quantity: <strong>{req.quantity_tons} Tons</strong>
                       </p>
-                    )}
-                  </div>
 
-                  {/* Actions Bar */}
-                  <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0">
-                    {/* If producer sent counter, give accept / counter options */}
-                    {isCounteredByProducer && req.status === 'pending' && (
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{req.producer_address}</span>
+                      </div>
+
+                      {/* Quality Inspection Photo preview */}
+                      {req.listing_photo_url && (
+                        <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200 w-fit">
+                          <img
+                            src={req.listing_photo_url}
+                            alt="Quality Inspection"
+                            className="w-16 h-14 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0 cursor-pointer"
+                            onClick={() => setChatReq(req)}
+                          />
+                          <div className="text-xs space-y-0.5">
+                            <span className="text-[10px] text-slate-500 font-medium block">Farmer's Quality Photo:</span>
+                            <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
+                              {req.quality_grade || 'Grade B (Standard)'}
+                            </span>
+                            <p className="text-[10px] text-slate-500">Click photo or chat to negotiate based on quality condition.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Price & Negotiation Status Badge */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                        <span className="bg-white border border-slate-200 px-3 py-1 rounded-xl text-slate-700 font-medium">
+                          Current Price: <strong className="text-emerald-700">₹{req.proposed_price_per_ton.toLocaleString('en-IN')}/ton</strong>
+                        </span>
+
+                        {isCounteredByProducer && req.counter_price_per_ton && (
+                          <span className="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+                            <ArrowUpDown className="w-3.5 h-3.5 text-amber-700" />
+                            Farmer Countered: ₹{req.counter_price_per_ton.toLocaleString('en-IN')}/ton
+                          </span>
+                        )}
+
+                        {isCounteredByMe && req.counter_price_per_ton && (
+                          <span className="bg-slate-200 text-slate-700 px-2.5 py-1 rounded-xl font-medium">
+                            Your Counter: ₹{req.counter_price_per_ton.toLocaleString('en-IN')}/ton (Awaiting farmer)
+                          </span>
+                        )}
+
+                        {req.negotiation_status === 'agreed' && (
+                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Agreed Price Locked
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Producer note */}
+                      {req.negotiation_notes && (
+                        <p className="text-xs text-amber-900 italic bg-amber-50 p-2 rounded-lg border border-amber-200">
+                          Latest Note: "{req.negotiation_notes}"
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions Bar */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 shrink-0">
+                      {/* Interactive Negotiation Chat button */}
+                      <button
+                        onClick={() => setChatReq(req)}
+                        className="bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs px-4 py-2.5 rounded-xl border border-amber-300 transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <MessageSquare className="w-4 h-4 text-amber-800" />
+                        <span>💬 Chat & Negotiate</span>
+                      </button>
+
+                      {/* Direct Accept button if producer countered */}
+                      {isCounteredByProducer && req.status === 'pending' && (
                         <button
                           onClick={() => respondToNegotiation(req.id, true)}
-                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1"
+                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1 cursor-pointer"
                         >
                           <Check className="w-4 h-4" /> Accept Farmer Price
                         </button>
-                        <button
-                          onClick={() => {
-                            setCounterReq(req);
-                            setProcCounterPrice(req.proposed_price_per_ton);
-                          }}
-                          className="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs px-3 py-2.5 rounded-xl border border-amber-300 transition"
-                        >
-                          Counter Back
-                        </button>
-                      </div>
-                    )}
+                      )}
 
-                    {req.status === 'pending' && !isCounteredByProducer && (
-                      <>
+                      {/* Accept & Schedule if ready */}
+                      {req.status === 'pending' && !isCounteredByProducer && (
                         <button
                           onClick={() => acceptPickupRequest(req.id)}
-                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition"
+                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition cursor-pointer"
                         >
                           Accept & Schedule Pickup
                         </button>
+                      )}
+
+                      {/* Handshake confirmation */}
+                      {req.status === 'accepted' && (
+                        <button
+                          onClick={() => setActiveHandshakeReq(req)}
+                          className="bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <KeyRound className="w-4 h-4 text-slate-950" />
+                          <span>Verify Pickup Handshake</span>
+                        </button>
+                      )}
+
+                      {/* Certificate */}
+                      {req.status === 'collected' && (
                         <button
                           onClick={() => {
-                            setCounterReq(req);
-                            setProcCounterPrice(req.proposed_price_per_ton - 100);
+                            const entry = ledger.find((l) => l.request_id === req.id);
+                            if (entry) setSelectedCertificate(entry);
+                            onOpenCertificate();
                           }}
-                          className="bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs px-3 py-2.5 rounded-xl border border-amber-300 transition flex items-center gap-1"
+                          className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-300 transition cursor-pointer"
                         >
-                          <ArrowUpDown className="w-3.5 h-3.5" />
-                          <span>Negotiate Price</span>
+                          <FileCheck className="w-4 h-4 text-emerald-700" />
+                          <span>View Certificate</span>
                         </button>
-                      </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab Content: Open Marketplace Waste Batches */}
+      {activeTab === 'marketplace' && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+          <div>
+            <h2 className="text-base font-black text-slate-900">Available Feedstock on Open Marketplace</h2>
+            <p className="text-xs text-slate-500">
+              Producers have published these organic waste batches to the open market. Inspect quality photos and submit buying proposals to start negotiations.
+            </p>
+          </div>
+
+          {openMarketplaceListings.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 space-y-2">
+              <Sparkles className="w-10 h-10 mx-auto opacity-40 text-amber-600" />
+              <p className="text-sm font-medium text-slate-700">No unassigned listings currently available.</p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                When farmers post new listings to the marketplace, they will appear here instantly!
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {openMarketplaceListings.map((listing) => (
+                <div
+                  key={listing.id}
+                  className="bg-[#fcfbf7] border border-slate-200 rounded-2xl p-5 space-y-3 hover:border-amber-400 transition shadow-sm flex flex-col justify-between"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-bold text-base text-slate-900">{listing.title}</h3>
+                        <p className="text-xs text-slate-500">
+                          Farmer: <strong>{listing.producer_name}</strong> · Phone: <strong>{listing.producer_phone}</strong>
+                        </p>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        {listing.quantity_in_tons} Tons
+                      </span>
+                    </div>
+
+                    {/* Photo preview */}
+                    {listing.photo_url ? (
+                      <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200">
+                        <img
+                          src={listing.photo_url}
+                          alt="Waste Inspection"
+                          className="w-16 h-14 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
+                        />
+                        <div className="text-xs space-y-0.5">
+                          <span className="text-[10px] text-slate-500 font-medium block">Quality Inspection Photo:</span>
+                          <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
+                            {listing.quality_grade || 'Grade B (Standard)'}
+                          </span>
+                          {listing.quality_notes && (
+                            <p className="text-[10px] text-slate-600 italic">"{listing.quality_notes}"</p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-1.5">
+                        <Camera className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                        <span>No photo attached · Quality: {listing.quality_grade || 'Grade B (Standard)'}</span>
+                      </div>
                     )}
 
-                    {req.status === 'accepted' && (
-                      <button
-                        onClick={() => setActiveHandshakeReq(req)}
-                        className="bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5"
-                      >
-                        <KeyRound className="w-4 h-4 text-slate-950" />
-                        <span>Verify Pickup Handshake</span>
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate">{listing.formatted_address || `${listing.city}, ${listing.state}`}</span>
+                    </div>
 
-                    {req.status === 'collected' && (
-                      <button
-                        onClick={() => {
-                          const entry = ledger.find((l) => l.request_id === req.id);
-                          if (entry) setSelectedCertificate(entry);
-                          onOpenCertificate();
-                        }}
-                        className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-300 transition"
-                      >
-                        <FileCheck className="w-4 h-4 text-emerald-700" />
-                        <span>View Certificate</span>
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>Ready by: {listing.expected_ready_date}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-500 block">Baseline Value</span>
+                      <span className="font-black text-emerald-700 text-sm">
+                        ₹{listing.estimated_value_usd.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setProposalListing(listing);
+                        setProposalPrice(currentUser?.price_per_ton || 2500);
+                        setProposalNote(`Inspected quality (${listing.quality_grade || 'Standard'}). We offer ₹${currentUser?.price_per_ton || 2500}/ton with farm collection.`);
+                      }}
+                      className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Propose Buying Offer</span>
+                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    )}
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Handshake OTP Verification Modal */}
       {activeHandshakeReq && (
@@ -640,14 +798,14 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveHandshakeReq(null)}
-                  className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800"
+                  className="px-4 py-2 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isVerifying || enteredOtp.length < 6}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 cursor-pointer"
                 >
                   {isVerifying ? 'Verifying in Supabase...' : 'Confirm Delivery & Mint Credits'}
                 </button>
@@ -657,61 +815,97 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
         </div>
       )}
 
-      {/* Processor Counter Offer Modal */}
-      {counterReq && (
+      {/* Two-Way Negotiation Chat Modal */}
+      {chatReq && (
+        <NegotiationChatModal
+          isOpen={Boolean(chatReq)}
+          onClose={() => setChatReq(null)}
+          request={chatReq}
+        />
+      )}
+
+      {/* Marketplace Proposal Modal */}
+      {proposalListing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in">
           <div className="relative w-full max-w-md bg-white border-2 border-amber-300 rounded-3xl shadow-2xl p-6 space-y-4">
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <ArrowUpDown className="w-5 h-5 text-amber-600" />
-              <span>Counter Offer to Producer</span>
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-600" />
+                <span>Submit Buying Proposal</span>
+              </h3>
+              <button
+                onClick={() => setProposalListing(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
 
-            <p className="text-xs text-slate-600">
-              Propose a revised buying rate for <strong>{counterReq.listing_title}</strong> to {counterReq.producer_name}.
-            </p>
+            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-3.5 text-xs space-y-1">
+              <p className="text-slate-700">Batch: <strong>{proposalListing.title}</strong></p>
+              <p className="text-slate-700">Farmer: <strong>{proposalListing.producer_name}</strong></p>
+              <p className="text-slate-700">
+                Quality: <strong>{proposalListing.quality_grade || 'Grade B (Standard)'}</strong>
+              </p>
+            </div>
 
-            <form onSubmit={handleSendCounter} className="space-y-3">
+            <form onSubmit={handleCreateProposal} className="space-y-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Your Counter Offer (₹ / Ton)
+                  Your Buying Rate Offer (₹ / Ton)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-2.5 text-amber-700 font-bold">₹</span>
                   <input
                     type="number"
                     step="50"
-                    value={procCounterPrice}
-                    onChange={(e) => setProcCounterPrice(Number(e.target.value))}
+                    min="500"
+                    max="20000"
+                    value={proposalPrice}
+                    onChange={(e) => setProposalPrice(Number(e.target.value))}
                     required
-                    className="w-full bg-slate-50 border-2 border-amber-400 rounded-xl pl-8 pr-3 py-2 font-bold text-slate-900"
+                    className="w-full bg-slate-50 border-2 border-amber-400 rounded-xl pl-8 pr-3 py-2 font-bold text-slate-900 focus:outline-none focus:bg-white"
                   />
                 </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Total estimated for {proposalListing.quantity_in_tons} tons: ₹
+                  {Math.round(proposalPrice * proposalListing.quantity_in_tons).toLocaleString('en-IN')}
+                </p>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Note to Farmer</label>
-                <input
-                  type="text"
-                  value={procNote}
-                  onChange={(e) => setProcNote(e.target.value)}
-                  placeholder="e.g. Includes transport costs and moisture allowance"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs"
+                <label className="block text-xs font-medium text-slate-600 mb-1">
+                  Quality Note / Initial Message to Farmer
+                </label>
+                <textarea
+                  rows={2}
+                  value={proposalNote}
+                  onChange={(e) => setProposalNote(e.target.value)}
+                  placeholder="e.g. Rate based on inspected photo condition. We will handle trailer logistics."
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:bg-white"
                 />
               </div>
+
+              {proposalFeedback && (
+                <p className="text-xs font-bold text-emerald-800 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+                  {proposalFeedback}
+                </p>
+              )}
 
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setCounterReq(null)}
-                  className="px-4 py-2 text-xs text-slate-500"
+                  onClick={() => setProposalListing(null)}
+                  className="px-4 py-2 text-xs text-slate-500 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl"
+                  disabled={isSubmittingProposal}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 cursor-pointer"
                 >
-                  Send Counter
+                  {isSubmittingProposal ? 'Submitting to Supabase...' : 'Submit Buying Offer'}
                 </button>
               </div>
             </form>

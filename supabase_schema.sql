@@ -26,7 +26,18 @@ ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS cluster_name TEXT;
 ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS scheduled_pickup_date DATE;
 ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS cluster_notification_sent BOOLEAN DEFAULT false;
 
--- 5. Create or update admin account
+-- 5. Add In-App Camera Inspection and Quality Condition columns to waste_listings
+ALTER TABLE public.waste_listings ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE public.waste_listings ADD COLUMN IF NOT EXISTS quality_grade TEXT;
+ALTER TABLE public.waste_listings ADD COLUMN IF NOT EXISTS quality_notes TEXT;
+
+-- 6. Add Inspection Photo, Quality Grade, and Two-Way Negotiation Chat messages to pickup_requests
+ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS listing_photo_url TEXT;
+ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS quality_grade TEXT;
+ALTER TABLE public.pickup_requests ADD COLUMN IF NOT EXISTS negotiation_messages JSONB DEFAULT '[]'::jsonb;
+
+-- 7. Create or update admin account
 INSERT INTO public.profiles (id, email, full_name, phone, role, entity_type, onboarded, verified, carbon_credits_balance)
 VALUES ('admin-root', 'admin@gmail.com', 'System Administrator', '+91 99999 99999', 'admin', 'admin', true, true, 0.0)
 ON CONFLICT (id) DO UPDATE SET role = 'admin', onboarded = true, verified = true;
+
