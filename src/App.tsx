@@ -29,7 +29,7 @@ const MainLayout: React.FC = () => {
 
   // 3. User is logged in -> Show appropriate dashboard
   return (
-    <div className="min-h-screen bg-[#fcfbf7] text-slate-900 flex flex-col selection:bg-emerald-600 selection:text-white relative">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-emerald-600 selection:text-white relative">
       <Navbar
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenVoiceAssistant={() => setIsVoiceOpen(true)}

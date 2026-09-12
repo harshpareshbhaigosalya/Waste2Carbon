@@ -101,24 +101,24 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with White - Gold - Emerald Styling */}
-      <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-amber-700 rounded-3xl p-6 sm:p-8 shadow-xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden">
-        {/* Subtle geometric pattern */}
-        <div className="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-amber-400/10 blur-2xl pointer-events-none" />
+      {/* Top Banner with Clean Emerald & Golden Accents */}
+      <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 rounded-3xl p-6 sm:p-8 shadow-lg text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden">
+        {/* Subtle geometric blur */}
+        <div className="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 space-y-1.5">
+        <div className="relative z-10 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-400 text-emerald-950 shadow-sm">
+            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-xs">
               Waste Producer Portal
             </span>
             <span className="text-xs text-emerald-100 font-medium">
               · {currentUser?.city ? `${currentUser.city}, ${currentUser.state}` : currentUser?.formatted_address || 'Registered Location'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             {currentUser?.full_name}
           </h1>
-          <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl">
+          <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl leading-relaxed">
             List agricultural residue, negotiate high prices with verified processing plants, and get certified carbon credits.
           </p>
         </div>
@@ -127,9 +127,9 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
           {onOpenVoiceAssistant && (
             <button
               onClick={onOpenVoiceAssistant}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-emerald-950 font-black px-4 py-3 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5"
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black px-4 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5"
             >
-              <Sparkles className="w-4 h-4 text-emerald-950" />
+              <Sparkles className="w-4 h-4 text-slate-950" />
               <span>AgriCarbon AI Voice</span>
             </button>
           )}
@@ -137,7 +137,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
           {onOpenProfile && (
             <button
               onClick={onOpenProfile}
-              className="px-4 py-3 rounded-2xl bg-emerald-900/60 hover:bg-emerald-900 text-white border border-emerald-600/40 text-xs font-bold transition"
+              className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold transition"
             >
               Producer Profile
             </button>
@@ -146,14 +146,14 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
           <button
             onClick={handleRefresh}
             title="Refresh database"
-            className="p-3 rounded-2xl bg-emerald-900/60 hover:bg-emerald-900 text-emerald-200 border border-emerald-600/40 transition"
+            className="p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-emerald-200 border border-white/20 transition"
           >
             <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-amber-300' : ''}`} />
           </button>
 
           <button
             onClick={() => setIsAddOpen(true)}
-            className="flex items-center justify-center gap-2 bg-white text-emerald-800 hover:bg-emerald-50 font-black px-5 py-3.5 rounded-2xl shadow-lg transition"
+            className="flex items-center justify-center gap-2 bg-white text-emerald-900 hover:bg-slate-50 font-black px-5 py-3.5 rounded-2xl shadow-md transition"
           >
             <Plus className="w-5 h-5 text-emerald-800" />
             <span>+ List Waste Batch</span>
@@ -163,7 +163,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
 
       {/* Prominent Physical Handshake Code Card */}
       {activePickup && (
-        <div className="bg-gradient-to-r from-amber-50 to-emerald-50 border-2 border-amber-400 rounded-3xl p-6 shadow-xl space-y-3">
+        <div className="bg-white border-2 border-amber-300 rounded-3xl p-6 shadow-md space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -172,32 +172,32 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                   {activePickup.cluster_name ? `Bulk Route Scheduled (${activePickup.cluster_name})` : 'Pickup Scheduled & En Route!'}
                 </span>
                 {activePickup.scheduled_pickup_date && (
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-800 text-white uppercase">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-700 text-white uppercase">
                     Arrival Date: {activePickup.scheduled_pickup_date}
                   </span>
                 )}
               </div>
               <h3 className="text-lg font-black text-slate-900">
-                {activePickup.processor_name} is arriving for bulk collection
+                {activePickup.processor_name} is arriving for collection
               </h3>
-              <p className="text-xs text-slate-700">
+              <p className="text-xs text-slate-600">
                 Feedstock: <strong>{activePickup.listing_title}</strong> ({activePickup.quantity_tons} Tons) · Agreed Rate:{' '}
-                <strong className="text-emerald-800 font-black">
+                <strong className="text-emerald-700 font-black">
                   ₹{activePickup.proposed_price_per_ton.toLocaleString('en-IN')}/ton
                 </strong>
               </p>
               {activePickup.scheduled_pickup_date && (
-                <p className="text-xs font-semibold text-emerald-900 bg-emerald-100/80 p-2 rounded-xl border border-emerald-300">
+                <p className="text-xs font-semibold text-emerald-900 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
                   📅 <strong>Facility Dispatch Notice:</strong> The processor has grouped your farm with nearby sellers on their route and confirmed arrival on <strong>{activePickup.scheduled_pickup_date}</strong>.
                 </p>
               )}
-              <p className="text-xs text-amber-900">
+              <p className="text-xs text-amber-900 pt-1">
                 👉 <strong>Show the 6-digit code below to the driver</strong> upon arrival to verify delivery and release your carbon credits:
               </p>
             </div>
 
-            <div className="bg-white border-2 border-amber-400 rounded-2xl px-6 py-3.5 text-center shadow-md shrink-0">
-              <span className="text-[10px] text-amber-800 uppercase tracking-widest block font-bold">
+            <div className="bg-slate-50 border-2 border-amber-400 rounded-2xl px-6 py-3.5 text-center shadow-xs shrink-0">
+              <span className="text-[10px] text-slate-500 uppercase tracking-widest block font-bold">
                 Pickup Handshake OTP
               </span>
               <span className="text-3xl sm:text-4xl font-mono font-black text-amber-600 tracking-widest block mt-0.5">
@@ -208,9 +208,9 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
         </div>
       )}
 
-      {/* KPI Cards in Clean White / Gold Style */}
+      {/* KPI Cards in Clean Modern Style */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-sm transition">
           <span className="text-xs font-semibold text-slate-500">Total Waste Diverted</span>
           <p className="text-2xl font-black text-slate-900 mt-1">
             {totalDivertedTons} <span className="text-xs text-slate-500 font-normal">Tons</span>
@@ -218,15 +218,15 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
           <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Diverted from landfills</p>
         </div>
 
-        <div className="bg-white border border-amber-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
-          <span className="text-xs font-semibold text-amber-800">Carbon Credits Balance</span>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-sm transition">
+          <span className="text-xs font-semibold text-slate-500">Carbon Credits Balance</span>
           <p className="text-2xl font-black text-emerald-700 mt-1">
             {currentUser?.carbon_credits_balance || 0} <span className="text-xs text-slate-500 font-normal">Credits</span>
           </p>
           <p className="text-[11px] text-amber-700 font-medium mt-0.5">1 Credit = 1 Ton verified CO2e</p>
         </div>
 
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-sm transition">
           <span className="text-xs font-semibold text-slate-500">Active Listings</span>
           <p className="text-2xl font-black text-slate-900 mt-1">
             {myListings.length} <span className="text-xs text-slate-500 font-normal">Batches</span>
@@ -237,10 +237,10 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
 
       {/* Active Price Negotiations & Facility Offers */}
       {myRequests.length > 0 && (
-        <div className="bg-white border border-amber-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold border border-amber-200">
                 <ArrowUpDown className="w-4 h-4" />
               </div>
               <div>
@@ -261,21 +261,21 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
               return (
                 <div
                   key={req.id}
-                  className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 space-y-3 relative hover:border-amber-400 transition"
+                  className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 space-y-3 relative hover:border-slate-300 transition"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="font-bold text-sm text-slate-900">{req.listing_title}</h4>
-                      <p className="text-xs text-slate-600">Buyer Facility: <strong>{req.processor_name}</strong></p>
+                      <p className="text-xs text-slate-500">Buyer Facility: <strong className="text-slate-700">{req.processor_name}</strong></p>
                     </div>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         req.negotiation_status === 'agreed'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : req.negotiation_status === 'rejected'
-                          ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
                           : req.negotiation_status?.startsWith('countered')
-                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          ? 'bg-amber-50 text-amber-800 border border-amber-200'
                           : 'bg-slate-200 text-slate-700'
                       }`}
                     >
@@ -309,7 +309,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
 
                   {/* If processor countered */}
                   {isCounteredByProc && req.counter_price_per_ton && (
-                    <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs space-y-2">
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs space-y-2">
                       <p className="text-amber-900 font-bold">
                         Processor proposed counter: ₹{req.counter_price_per_ton.toLocaleString('en-IN')} / ton
                       </p>
@@ -347,9 +347,9 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                         setNegotiatingReq(req);
                         setCounterPriceInput((req.counter_price_per_ton || req.proposed_price_per_ton) + 300);
                       }}
-                      className="w-full py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                      className="w-full py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-2xs"
                     >
-                      <ArrowUpDown className="w-3.5 h-3.5 text-amber-700" />
+                      <ArrowUpDown className="w-3.5 h-3.5 text-amber-600" />
                       <span>Negotiate Higher Price (Counter Offer)</span>
                     </button>
                   )}
@@ -361,7 +361,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
       )}
 
       {/* Listings Section */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
         <h2 className="text-base font-black text-slate-900">Your Listed Waste Batches</h2>
 
         {myListings.length === 0 ? (
@@ -370,7 +370,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
             <p className="text-sm font-medium text-slate-600">You have not listed any waste batches yet.</p>
             <button
               onClick={() => setIsAddOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 shadow transition"
+              className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 shadow-xs transition"
             >
               + Create First Waste Listing
             </button>
@@ -380,7 +380,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
             {myListings.map((listing) => (
               <div
                 key={listing.id}
-                className="bg-[#fcfbf7] border border-slate-200 rounded-2xl p-5 space-y-3 hover:border-emerald-300 transition shadow-sm"
+                className="bg-slate-50/70 border border-slate-200 rounded-2xl p-5 space-y-3 hover:border-slate-300 transition shadow-2xs"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -393,10 +393,10 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                   <span
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
                       listing.status === 'collected'
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         : listing.status === 'accepted'
-                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                        : 'bg-slate-100 text-slate-700 border border-slate-200'
+                        ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
                     }`}
                   >
                     {listing.status}
@@ -437,7 +437,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                         if (entry) setSelectedCertificate(entry);
                         onOpenCertificate();
                       }}
-                      className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 transition"
+                      className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition"
                     >
                       <FileCheck className="w-3.5 h-3.5 text-emerald-700" />
                       <span>View Carbon Certificate</span>
@@ -452,8 +452,8 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
 
       {/* Negotiation Counter-Offer Modal */}
       {negotiatingReq && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-emerald-950/40 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-md bg-white border-2 border-amber-300 rounded-3xl shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
                 <ArrowUpDown className="w-5 h-5 text-amber-600" />
@@ -490,7 +490,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                     value={counterPriceInput}
                     onChange={(e) => setCounterPriceInput(Number(e.target.value))}
                     required
-                    className="w-full bg-slate-50 border-2 border-amber-400 rounded-2xl pl-8 pr-4 py-2.5 text-lg font-black text-slate-900 focus:outline-none focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-2xl pl-8 pr-4 py-2.5 text-lg font-black text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1">
@@ -508,7 +508,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                   value={negotiationNote}
                   onChange={(e) => setNegotiationNote(e.target.value)}
                   placeholder="e.g. High dry matter quality, baled & ready for quick loading"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
@@ -529,7 +529,7 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                 <button
                   type="submit"
                   disabled={isNegotiating}
-                  className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 flex items-center gap-1.5"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{isNegotiating ? 'Submitting to Supabase...' : 'Submit Counter Offer'}</span>

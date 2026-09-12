@@ -2,14 +2,42 @@
 
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background-color: #fcfbf7;
-    color: #1c2e24;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
   }
+}
+
+/* Modern Card Glow & Elevation Effects */
+.card-elevation {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-elevation:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+}
+
+/* Golden-Green Premium Gradient */
+.gradient-forest-gold {
+  background: linear-gradient(135deg, #065f46 0%, #047857 50%, #b45309 100%);
+}
+
+.gradient-gold-subtle {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.gradient-emerald-subtle {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
 }
 
 /* Custom styles for Leaflet map (Light clean style) */
@@ -17,7 +45,7 @@
   width: 100%;
   height: 100%;
   border-radius: 1rem;
-  background-color: #f4f1ea;
+  background-color: #f8fafc;
 }
 
 .leaflet-tile {
@@ -26,10 +54,10 @@
 
 .leaflet-popup-content-wrapper {
   background: #ffffff !important;
-  color: #1e293b !important;
+  color: #0f172a !important;
   border: 1px solid #e2e8f0 !important;
   border-radius: 0.75rem !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12) !important;
 }
 
 .leaflet-popup-tip {
@@ -43,7 +71,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -58,10 +86,10 @@
 /* Soft golden-green shimmer */
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+    box-shadow: 0 0 15px rgba(217, 119, 6, 0.25);
   }
   50% {
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 25px rgba(5, 150, 105, 0.35);
   }
 }
 

@@ -161,20 +161,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     email: string,
     pass: string
   ): Promise<{ success: boolean; message: string; requiresVerification?: boolean }> => {
+    const cleanEmail = email.trim().toLowerCase();
+
+    // STRICT CHECK: Ensure this email is not already registered in Supabase profiles
+    try {
+      const { data: existingProfiles, error: checkError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .ilike('email', cleanEmail);
+
+      if (!checkError && existingProfiles && existingProfiles.length > 0) {
+        return {
+          success: false,
+          message: 'An account with this email address already exists. Please sign in instead.',
+        };
+      }
+    } catch (checkErr) {
+      console.warn('Email duplicate check warning:', checkErr);
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password: pass,
       });
 
       if (error) {
-        // If Supabase free tier email rate limit is triggered, bypass directly to database
+        // If error message indicates user already registered
+        if (
+          error.message.toLowerCase().includes('already registered') ||
+          error.message.toLowerCase().includes('user already exists') ||
+          error.status === 422
+        ) {
+          return {
+            success: false,
+            message: 'This email is already registered. Please sign in or use another email.',
+          };
+        }
+
+        // If Supabase free tier email rate limit is triggered, verify again against profiles
         if (error.message.toLowerCase().includes('rate limit') || error.status === 429) {
+          // Double check database to prevent duplicate fallback creation
+          const { data: dupCheck } = await supabase
+            .from('profiles')
+            .select('id')
+            .ilike('email', cleanEmail);
+
+          if (dupCheck && dupCheck.length > 0) {
+            return {
+              success: false,
+              message: 'This email is already registered. Please switch to Sign In.',
+            };
+          }
+
           const fallbackId = `usr-${Date.now()}`;
           const fallbackProfile: UserProfile = {
             id: fallbackId,
-            email,
-            full_name: email.split('@')[0],
+            email: cleanEmail,
+            full_name: cleanEmail.split('@')[0],
             phone: '',
             role: 'producer',
             entity_type: 'farm',
@@ -187,7 +231,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           await refreshData();
           return {
             success: true,
-            message: `Account created directly in Supabase! (Email rate limit bypassed for development). Proceeding to onboarding profile...`,
+            message: `Account created successfully! Proceeding to onboarding profile...`,
             requiresVerification: false,
           };
         }
@@ -199,10 +243,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return { success: false, message: 'Registration failed. Please try again.' };
       }
 
+      // Check if user already exists
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        return {
+          success: false,
+          message: 'This email is already registered. Please sign in.',
+        };
+      }
+
       const initialProfile: UserProfile = {
         id: authUser.id,
-        email: authUser.email || email,
-        full_name: email.split('@')[0],
+        email: authUser.email || cleanEmail,
+        full_name: cleanEmail.split('@')[0],
         phone: '',
         role: 'producer',
         entity_type: 'farm',
@@ -221,30 +273,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return {
         success: true,
         message: requiresVerification
-          ? `Account created! A confirmation email was sent to ${email}. Please check your inbox / spam folder. You can now complete your onboarding profile.`
+          ? `Account created! A confirmation email was sent to ${cleanEmail}. Please check your inbox / spam folder. You can now complete your onboarding profile.`
           : 'Account created and verified! Please complete your onboarding profile.',
         requiresVerification,
       };
     } catch (err: any) {
-      const fallbackId = `usr-${Date.now()}`;
-      const fallbackProfile: UserProfile = {
-        id: fallbackId,
-        email,
-        full_name: email.split('@')[0],
-        phone: '',
-        role: 'producer',
-        entity_type: 'farm',
-        onboarded: false,
-        verified: false,
-        carbon_credits_balance: 0,
-      };
-      await supabase.from('profiles').upsert(fallbackProfile);
-      setCurrentUser(fallbackProfile);
-      await refreshData();
+      console.error('Registration exception:', err);
       return {
-        success: true,
-        message: 'Account created directly in Supabase. Proceeding to onboarding...',
-        requiresVerification: false,
+        success: false,
+        message: err.message || 'Registration failed. Please try again or sign in.',
       };
     }
   };

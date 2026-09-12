@@ -252,27 +252,30 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with White - Gold - Emerald Styling */}
-      <div className="bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-800 rounded-3xl p-6 sm:p-8 shadow-xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden">
-        <div className="relative z-10 space-y-1.5">
+      {/* Top Banner with Clean Modern Forest & Amber Accents */}
+      <div className="bg-gradient-to-r from-amber-800 via-amber-700 to-emerald-900 rounded-3xl p-6 sm:p-8 shadow-lg text-white flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white text-emerald-950 shadow-sm">
+            <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-xs">
               {currentUser?.facility_type === 'biochar' ? 'Biochar Pyrolysis Plant' : 'Biogas Digester Plant'}
             </span>
             <span className="text-xs text-amber-100 font-medium">
               · {currentUser?.city ? `${currentUser.city}, ${currentUser.state}` : currentUser?.formatted_address || 'Registered Facility'}
             </span>
             {currentUser?.verified && (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-900/60 text-emerald-200 border border-emerald-400 flex items-center gap-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-200 border border-emerald-400/50 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-emerald-300" />
                 Verified Facility
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             {currentUser?.full_name}
           </h1>
-          <p className="text-xs sm:text-sm text-amber-100/90 max-w-xl">
+          <p className="text-xs sm:text-sm text-amber-100/90 max-w-xl leading-relaxed">
             Accept organic feedstock from nearby farms, negotiate purchase prices, and convert waste into verified carbon credits.
           </p>
         </div>
@@ -281,9 +284,9 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           {onOpenVoiceAssistant && (
             <button
               onClick={onOpenVoiceAssistant}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-300 to-amber-200 hover:from-amber-200 hover:to-amber-100 text-emerald-950 font-black px-4 py-3 rounded-2xl shadow-lg transition"
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-slate-950 font-black px-4 py-3 rounded-2xl shadow-md transition"
             >
-              <Sparkles className="w-4 h-4 text-emerald-950" />
+              <Sparkles className="w-4 h-4 text-slate-950" />
               <span>AgriCarbon AI Voice</span>
             </button>
           )}
