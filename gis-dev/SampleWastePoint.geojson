@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "g1",
+        "role": "generator",
+        "name": "Patel Farms",
+        "wasteType": "Dry organic (crop residue)",
+        "quantityTons": 3.2
+      },
+      "geometry": { "type": "Point", "coordinates": [72.5714, 23.0225] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "g2",
+        "role": "generator",
+        "name": "Riverside Dairy",
+        "wasteType": "Wet organic (manure)",
+        "quantityTons": 5.1
+      },
+      "geometry": { "type": "Point", "coordinates": [72.5297, 23.0410] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "g3",
+        "role": "generator",
+        "name": "Sunrise Food Court",
+        "wasteType": "Wet organic (food waste)",
+        "quantityTons": 1.4
+      },
+      "geometry": { "type": "Point", "coordinates": [72.5600, 23.0150] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "f1",
+        "role": "facility",
+        "name": "GreenChar Biochar Unit",
+        "accepts": "Dry organic",
+        "capacityTons": 20
+      },
+      "geometry": { "type": "Point", "coordinates": [72.5850, 23.0330] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "f2",
+        "role": "facility",
+        "name": "Ahmedabad Biogas Plant",
+        "accepts": "Wet organic",
+        "capacityTons": 35
+      },
+      "geometry": { "type": "Point", "coordinates": [72.5500, 23.0100] }
+    }
+  ]
+}
