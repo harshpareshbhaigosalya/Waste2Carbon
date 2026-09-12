@@ -77,6 +77,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCertificate, setSelectedCertificate] = useState<CarbonLedgerEntry | null>(null);
 
+  // Storage key for persistent quality photos and assay data
+  const STORAGE_PHOTOS_KEY = 'w2c_listing_quality_photos';
+
+  const getStoredListingPhotos = (): Record<string, { photo_url?: string; quality_grade?: string; quality_notes?: string }> => {
+    try {
+      const raw = localStorage.getItem(STORAGE_PHOTOS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      console.warn('Error reading stored listing photos:', e);
+      return {};
+    }
+  };
+
+  const saveListingPhoto = (
+    listingId: string,
+    quality: { photo_url?: string; quality_grade?: string; quality_notes?: string }
+  ) => {
+    try {
+      const current = getStoredListingPhotos();
+      current[listingId] = {
+        ...current[listingId],
+        ...quality,
+      };
+      localStorage.setItem(STORAGE_PHOTOS_KEY, JSON.stringify(current));
+    } catch (e) {
+      console.warn('Error saving listing photo:', e);
+    }
+  };
+
+  // High-fidelity fallback images for agricultural biomass batches
+  const getDefaultBiomassPhoto = (category: string, subcategory?: string): string => {
+    const sub = (subcategory || '').toLowerCase();
+    if (sub.includes('straw') || sub.includes('paddy') || sub.includes('rice') || sub.includes('wheat') || sub.includes('stubble')) {
+      return 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1000&q=80';
+    }
+    if (sub.includes('bale') || sub.includes('husk') || sub.includes('dry') || category === 'dry_organic') {
+      return 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=1000&q=80';
+    }
+    if (sub.includes('bagasse') || sub.includes('cane') || sub.includes('stalk') || sub.includes('corn')) {
+      return 'https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?auto=format&fit=crop&w=1000&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1000&q=80';
+  };
+
   // 1. Fetch all data directly from Supabase tables
   const refreshData = async () => {
     try {
@@ -90,13 +134,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
 
+      const localPhotos = getStoredListingPhotos();
+
       // Fetch waste listings
       const { data: listingsData } = await supabase
         .from('waste_listings')
         .select('*')
         .order('created_at', { ascending: false });
+      
+      let enrichedListings: WasteListing[] = [];
       if (listingsData) {
-        setListings(listingsData);
+        enrichedListings = listingsData.map((listing: any) => {
+          const cached = localPhotos[listing.id];
+          const photo_url =
+            listing.photo_url ||
+            cached?.photo_url ||
+            getDefaultBiomassPhoto(listing.waste_category, listing.waste_subcategory);
+          const quality_grade =
+            listing.quality_grade ||
+            cached?.quality_grade ||
+            (listing.waste_category === 'dry_organic' ? 'Grade B (Standard)' : 'Grade C (Mixed / High Moisture)');
+          const quality_notes = listing.quality_notes || cached?.quality_notes;
+
+          // Auto-persist in localPhotos so cache stays synchronized
+          if (photo_url && !cached?.photo_url) {
+            saveListingPhoto(listing.id, { photo_url, quality_grade, quality_notes });
+          }
+
+          return {
+            ...listing,
+            photo_url,
+            quality_grade,
+            quality_notes,
+          };
+        });
+        setListings(enrichedListings);
       }
 
       // Fetch pickup requests
@@ -105,20 +177,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .select('*')
         .order('created_at', { ascending: false });
       if (requestsData) {
-        const parsed = requestsData.map((r: any) => ({
-          ...r,
-          negotiation_messages: typeof r.negotiation_messages === 'string'
-            ? (() => {
-                try {
-                  return JSON.parse(r.negotiation_messages);
-                } catch {
-                  return [];
-                }
-              })()
-            : Array.isArray(r.negotiation_messages)
-            ? r.negotiation_messages
-            : [],
-        }));
+        const parsed = requestsData.map((r: any) => {
+          const cached = localPhotos[r.listing_id];
+          const matchingListing = enrichedListings.find((l) => l.id === r.listing_id);
+          const listing_photo_url =
+            r.listing_photo_url ||
+            cached?.photo_url ||
+            matchingListing?.photo_url ||
+            getDefaultBiomassPhoto(r.waste_category);
+          const quality_grade =
+            r.quality_grade ||
+            cached?.quality_grade ||
+            matchingListing?.quality_grade ||
+            'Grade B (Standard)';
+
+          return {
+            ...r,
+            listing_photo_url,
+            quality_grade,
+            negotiation_messages:
+              typeof r.negotiation_messages === 'string'
+                ? (() => {
+                    try {
+                      return JSON.parse(r.negotiation_messages);
+                    } catch {
+                      return [];
+                    }
+                  })()
+                : Array.isArray(r.negotiation_messages)
+                ? r.negotiation_messages
+                : [],
+          };
+        });
         setPickupRequests(parsed);
       }
 
@@ -576,6 +666,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
+    const effectivePhoto =
+      data.photo_url || getDefaultBiomassPhoto(data.waste_category, data.waste_subcategory);
+    const effectiveGrade =
+      data.quality_grade ||
+      (data.waste_category === 'dry_organic'
+        ? 'Grade B (Standard)'
+        : 'Grade C (Mixed / High Moisture)');
+
+    // Persist immediately in client-side storage cache so photo is preserved across all views
+    saveListingPhoto(listingId, {
+      photo_url: effectivePhoto,
+      quality_grade: effectiveGrade,
+      quality_notes: data.quality_notes,
+    });
+
     const newListing: WasteListing = {
       id: listingId,
       producer_id: currentUser.id,
@@ -597,8 +702,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       longitude: data.addressData.longitude,
       estimated_co2_sequestered: metrics.totalCO2e,
       estimated_value_usd: metrics.estimatedMarketValueINR,
-      photo_url: data.photo_url,
-      quality_grade: data.quality_grade,
+      photo_url: effectivePhoto,
+      quality_grade: effectiveGrade,
       quality_notes: data.quality_notes,
       status,
       assigned_processor_id: data.processor_id || undefined,
@@ -629,8 +734,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sender_name: currentUser.full_name,
         sender_role: 'producer',
         message: data.quality_notes
-          ? `Listing created (${data.quality_grade || 'Standard Quality'}). Quality note: ${data.quality_notes}`
-          : `Listing created for ${data.quantity} ${data.unit} (${data.quality_grade || 'Standard Quality'}). Ready for inspection and pickup.`,
+          ? `Listing created (${effectiveGrade}). Quality note: ${data.quality_notes}`
+          : `Listing created for ${data.quantity} ${data.unit} (${effectiveGrade}). Ready for inspection and pickup.`,
         offered_price: initialPrice,
         created_at: new Date().toISOString(),
       };
@@ -639,8 +744,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: `req-${Date.now()}`,
         listing_id: newListing.id,
         listing_title: newListing.title,
-        listing_photo_url: data.photo_url,
-        quality_grade: data.quality_grade,
+        listing_photo_url: effectivePhoto,
+        quality_grade: effectiveGrade,
         producer_id: currentUser.id,
         producer_name: currentUser.full_name,
         producer_phone: currentUser.phone,
@@ -843,12 +948,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       created_at: new Date().toISOString(),
     };
 
+    const effectivePhoto =
+      listing.photo_url ||
+      getStoredListingPhotos()[listing.id]?.photo_url ||
+      getDefaultBiomassPhoto(listing.waste_category, listing.waste_subcategory);
+    const effectiveGrade =
+      listing.quality_grade ||
+      getStoredListingPhotos()[listing.id]?.quality_grade ||
+      'Grade B (Standard)';
+
+    saveListingPhoto(listing.id, {
+      photo_url: effectivePhoto,
+      quality_grade: effectiveGrade,
+      quality_notes: listing.quality_notes,
+    });
+
     const newRequest: PickupRequest = {
       id: `req-${Date.now()}`,
       listing_id: listing.id,
       listing_title: listing.title,
-      listing_photo_url: listing.photo_url,
-      quality_grade: listing.quality_grade,
+      listing_photo_url: effectivePhoto,
+      quality_grade: effectiveGrade,
       producer_id: listing.producer_id,
       producer_name: listing.producer_name,
       producer_phone: listing.producer_phone,

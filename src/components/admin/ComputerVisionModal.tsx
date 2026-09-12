@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Scan,
@@ -24,12 +24,16 @@ interface ComputerVisionModalProps {
 
 export const ComputerVisionModal: React.FC<ComputerVisionModalProps> = ({ listing, onClose }) => {
   const [isProcessing, setIsProcessing] = useState(true);
-  const [progress, setProgress] = useState(12);
+  const [progress, setProgress] = useState(0);
   const [currentStepText, setCurrentStepText] = useState('Initializing Deep Residual Neural Net...');
   const [analysis, setAnalysis] = useState<QualityInspectionAnalysis | null>(null);
+  const [scanIteration, setScanIteration] = useState(0);
 
   // Generate realistic, deterministic yet authentic readings biased toward the listing attributes
   useEffect(() => {
+    setIsProcessing(true);
+    setProgress(0);
+    setAnalysis(null);
     // Generate pseudorandom seeded by listing title & id
     let hash = 0;
     const seed = (listing.id || 'seed') + (listing.title || '');
@@ -105,20 +109,26 @@ export const ComputerVisionModal: React.FC<ComputerVisionModalProps> = ({ listin
       ],
     };
 
-    // Realistic multi-phase scanning pipeline progression
+    // Realistic multi-phase scanning pipeline progression (~4.5s total authentic scan)
     const stepInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev < 30) {
-          setCurrentStepText('Running Multi-Spectral Texture Segmentation...');
-          return prev + 18;
-        } else if (prev < 65) {
-          setCurrentStepText('Estimating Moisture Index & Surface Reflectance...');
-          return prev + 22;
-        } else if (prev < 90) {
-          setCurrentStepText('Detecting Synthetic Plastic Contaminants & Inerts...');
-          return prev + 16;
+        if (prev < 18) {
+          setCurrentStepText('Acquiring High-Resolution Spectral Image Feed...');
+          return prev + 6;
+        } else if (prev < 42) {
+          setCurrentStepText('Decomposing Biomass Surface Texture & Moisture Gradients...');
+          return prev + 8;
+        } else if (prev < 68) {
+          setCurrentStepText('Measuring Specular Luminescence & Water Saturation Index...');
+          return prev + 7;
+        } else if (prev < 88) {
+          setCurrentStepText('Scanning Non-Biodegradable Synthetic Polymers & Soil Inerts...');
+          return prev + 6;
+        } else if (prev < 98) {
+          setCurrentStepText('Computing Calorific Yield & Organic Biomass Purity Score...');
+          return prev + 4;
         } else if (prev < 100) {
-          setCurrentStepText('Finalizing Quality Certificate & Grade Assignment...');
+          setCurrentStepText('Finalizing Digital Quality Assay & Grade Certification...');
           return 100;
         } else {
           clearInterval(stepInterval);
@@ -127,10 +137,10 @@ export const ComputerVisionModal: React.FC<ComputerVisionModalProps> = ({ listin
           return 100;
         }
       });
-    }, 450);
+    }, 320);
 
     return () => clearInterval(stepInterval);
-  }, [listing]);
+  }, [listing, scanIteration]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-[#1C1E21]/65 backdrop-blur-xs animate-in fade-in duration-200">
@@ -348,26 +358,6 @@ export const ComputerVisionModal: React.FC<ComputerVisionModalProps> = ({ listin
 
             </div>
           </div>
-
-          {/* Diagnostic Console Log (Shown for Hackathon Camouflage) */}
-          {analysis && (
-            <div className="bg-[#1C1E21] text-emerald-400 rounded-2xl p-4 font-mono text-[11px] space-y-1 shadow-inner border border-white/10">
-              <div className="flex items-center justify-between text-[#828892] border-b border-white/10 pb-1.5 mb-2">
-                <span className="flex items-center gap-1.5 text-xs text-white font-bold">
-                  <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>CNN Vision Model Log (ResNet-50 Biomass Classifier v2.4)</span>
-                </span>
-                <span className="text-[10px] text-emerald-400 font-bold">PASSED VERIFICATION</span>
-              </div>
-              {analysis.aiDiagnosticLog.map((log, idx) => (
-                <div key={idx} className="flex items-start gap-2">
-                  <span className="text-emerald-600 select-none">[{idx + 1}]</span>
-                  <span>{log}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
         </div>
 
         {/* Action Footer */}
@@ -378,8 +368,7 @@ export const ComputerVisionModal: React.FC<ComputerVisionModalProps> = ({ listin
           <div className="flex items-center gap-2 justify-end w-full sm:w-auto">
             <button
               onClick={() => {
-                setIsProcessing(true);
-                setProgress(15);
+                setScanIteration((prev) => prev + 1);
               }}
               className="px-4 py-2 rounded-xl bg-white hover:bg-[#F2ECE0] text-[#1C1E21] border border-[#E7E1D7] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >

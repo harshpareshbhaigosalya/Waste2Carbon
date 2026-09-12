@@ -16,9 +16,12 @@ import {
   Sparkles,
   HelpCircle,
   XCircle,
+  Cpu,
+  Scan,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { PickupRequest, NegotiationMessage } from '../types';
+import { PickupRequest, NegotiationMessage, WasteListing } from '../types';
+import { ComputerVisionModal } from './admin/ComputerVisionModal';
 
 interface NegotiationChatModalProps {
   isOpen: boolean;
@@ -41,6 +44,7 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [showPhotoZoom, setShowPhotoZoom] = useState(false);
+  const [showAiAssay, setShowAiAssay] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -192,19 +196,30 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
           )}
 
           <div className="flex-1 space-y-1.5 text-xs">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-[#1C1E21]">Verified Quality Grade:</span>
-              <span
-                className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                  request.quality_grade?.includes('Grade A')
-                    ? 'bg-[#FAF8F5] text-[#2D5A43] border border-[#2D5A43]/40'
-                    : request.quality_grade?.includes('Grade C')
-                    ? 'bg-[#F4EDE2] text-[#9A6A15] border border-[#D4A34F]'
-                    : 'bg-[#FAF8F5] text-[#1C1E21] border border-[#E7E1D7]'
-                }`}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-bold text-[#1C1E21]">Verified Quality Grade:</span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    request.quality_grade?.includes('Grade A')
+                      ? 'bg-[#FAF8F5] text-[#2D5A43] border border-[#2D5A43]/40'
+                      : request.quality_grade?.includes('Grade C')
+                      ? 'bg-[#F4EDE2] text-[#9A6A15] border border-[#D4A34F]'
+                      : 'bg-[#FAF8F5] text-[#1C1E21] border border-[#E7E1D7]'
+                  }`}
+                >
+                  {request.quality_grade || 'Grade B (Standard Commercial)'}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAiAssay(true)}
+                className="px-3 py-1 rounded-xl bg-[#2D5A43] hover:bg-[#1E4330] text-white text-[11px] font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
               >
-                {request.quality_grade || 'Grade B (Standard Commercial)'}
-              </span>
+                <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
+                <span>Inspect AI Quality Assay</span>
+              </button>
             </div>
 
             <p className="text-[#828892] text-[11px] leading-relaxed">
@@ -460,6 +475,36 @@ export const NegotiationChatModal: React.FC<NegotiationChatModalProps> = ({
             </p>
           </div>
         </div>
+      )}
+
+      {/* AI Vision Assay Inspection Modal */}
+      {showAiAssay && (
+        <ComputerVisionModal
+          listing={{
+            id: request.listing_id,
+            producer_id: request.producer_id,
+            producer_name: request.producer_name,
+            producer_phone: request.producer_phone,
+            title: request.listing_title,
+            waste_category: request.waste_category,
+            waste_subcategory: request.waste_category,
+            quantity: request.quantity_tons,
+            unit: 'ton',
+            quantity_in_tons: request.quantity_tons,
+            expected_ready_date: request.proposed_pickup_date,
+            formatted_address: request.producer_address,
+            latitude: 28.61,
+            longitude: 77.2,
+            estimated_co2_sequestered: 2.1,
+            estimated_value_usd: Math.round(request.proposed_price_per_ton * request.quantity_tons),
+            status: 'requested',
+            photo_url: request.listing_photo_url,
+            quality_grade: (request.quality_grade as any) || 'Grade B (Standard)',
+            verification_otp: request.verification_code,
+            created_at: request.created_at,
+          }}
+          onClose={() => setShowAiAssay(false)}
+        />
       )}
     </div>
   );

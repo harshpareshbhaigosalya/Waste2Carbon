@@ -18,12 +18,16 @@ import {
   Check,
   X as XIcon,
   Receipt,
+  Scan,
+  Cpu,
+  Eye,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AddWasteModal } from './AddWasteModal';
 import { NegotiationChatModal } from '../NegotiationChatModal';
 import { DeliveryReceiptModal } from '../processor/DeliveryReceiptModal';
-import { PickupRequest, DeliveryReceipt } from '../../types';
+import { ComputerVisionModal } from '../admin/ComputerVisionModal';
+import { PickupRequest, DeliveryReceipt, WasteListing } from '../../types';
 
 interface ProducerDashboardProps {
   onOpenCertificate: () => void;
@@ -53,6 +57,9 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
 
   // Negotiation chat modal state
   const [chatReq, setChatReq] = useState<PickupRequest | null>(null);
+
+  // Quality Inspection AI Scan Modal state
+  const [inspectingListing, setInspectingListing] = useState<WasteListing | null>(null);
 
   // Listings for this producer
   const myListings = listings.filter((l) => l.producer_id === currentUser?.id);
@@ -271,18 +278,85 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
 
                   {/* Quality Inspection Photo preview if available */}
                   {req.listing_photo_url && (
-                    <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-[#E7E1D7]">
-                      <img
-                        src={req.listing_photo_url}
-                        alt="Quality Inspection"
-                        className="w-14 h-12 rounded-lg object-cover border border-[#E7E1D7] shadow-2xs"
-                      />
-                      <div className="text-xs space-y-0.5">
-                        <span className="text-[10px] text-[#828892] font-medium block">Inspected Quality:</span>
-                        <span className="font-bold text-[#1D5E34] bg-[#EDF6F0] px-2 py-0.5 rounded-md border border-[#BCE1C8] text-[11px]">
-                          {req.quality_grade || 'Grade B (Standard)'}
-                        </span>
+                    <div className="flex items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7]">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={req.listing_photo_url}
+                          alt="Quality Inspection"
+                          className="w-14 h-12 rounded-lg object-cover border border-[#E7E1D7] shadow-2xs cursor-pointer hover:opacity-90 transition"
+                          onClick={() => {
+                            const matched = listings.find((l) => l.id === req.listing_id);
+                            if (matched) setInspectingListing(matched);
+                            else {
+                              setInspectingListing({
+                                id: req.listing_id,
+                                producer_id: req.producer_id,
+                                producer_name: req.producer_name,
+                                producer_phone: req.producer_phone,
+                                title: req.listing_title,
+                                waste_category: req.waste_category,
+                                waste_subcategory: req.waste_category,
+                                quantity: req.quantity_tons,
+                                unit: 'ton',
+                                quantity_in_tons: req.quantity_tons,
+                                expected_ready_date: req.proposed_pickup_date,
+                                formatted_address: req.producer_address,
+                                latitude: 28.61,
+                                longitude: 77.2,
+                                estimated_co2_sequestered: 2.1,
+                                estimated_value_usd: 5000,
+                                status: 'requested',
+                                photo_url: req.listing_photo_url,
+                                quality_grade: req.quality_grade as any,
+                                verification_otp: req.verification_code,
+                                created_at: req.created_at,
+                              });
+                            }
+                          }}
+                        />
+                        <div className="text-xs space-y-0.5">
+                          <span className="text-[10px] text-[#828892] font-medium block">Inspected Quality:</span>
+                          <span className="font-bold text-[#1D5E34] bg-[#EDF6F0] px-2 py-0.5 rounded-md border border-[#BCE1C8] text-[11px]">
+                            {req.quality_grade || 'Grade B (Standard)'}
+                          </span>
+                        </div>
                       </div>
+
+                      <button
+                        onClick={() => {
+                          const matched = listings.find((l) => l.id === req.listing_id);
+                          if (matched) setInspectingListing(matched);
+                          else {
+                            setInspectingListing({
+                              id: req.listing_id,
+                              producer_id: req.producer_id,
+                              producer_name: req.producer_name,
+                              producer_phone: req.producer_phone,
+                              title: req.listing_title,
+                              waste_category: req.waste_category,
+                              waste_subcategory: req.waste_category,
+                              quantity: req.quantity_tons,
+                              unit: 'ton',
+                              quantity_in_tons: req.quantity_tons,
+                              expected_ready_date: req.proposed_pickup_date,
+                              formatted_address: req.producer_address,
+                              latitude: 28.61,
+                              longitude: 77.2,
+                              estimated_co2_sequestered: 2.1,
+                              estimated_value_usd: 5000,
+                              status: 'requested',
+                              photo_url: req.listing_photo_url,
+                              quality_grade: req.quality_grade as any,
+                              verification_otp: req.verification_code,
+                              created_at: req.created_at,
+                            });
+                          }
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-[#FAF8F5] hover:bg-[#F2ECE0] border border-[#E7E1D7] text-[11px] font-bold text-[#2D5A43] flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                      >
+                        <Scan className="w-3.5 h-3.5 text-[#E5C378]" />
+                        <span>AI Assay</span>
+                      </button>
                     </div>
                   )}
 
@@ -399,20 +473,31 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
                   </span>
                 </div>
 
-                {/* Quality photo thumbnail */}
+                {/* Quality photo card with AI Assay inspection */}
                 {listing.photo_url && (
-                  <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7]">
-                    <img
-                      src={listing.photo_url}
-                      alt="Quality Inspection"
-                      className="w-14 h-12 rounded-lg object-cover border border-[#E7E1D7] shadow-2xs"
-                    />
-                    <div className="text-xs space-y-0.5">
-                      <span className="text-[10px] text-[#828892] font-medium block">Quality Inspection Photo:</span>
-                      <span className="font-bold text-[#1D5E34] bg-[#EDF6F0] px-2 py-0.5 rounded-md border border-[#BCE1C8] text-[11px]">
-                        {listing.quality_grade || 'Grade B (Standard)'}
-                      </span>
+                  <div className="flex items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-[#E7E1D7]">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={listing.photo_url}
+                        alt="Quality Inspection"
+                        className="w-14 h-12 rounded-lg object-cover border border-[#E7E1D7] shadow-2xs cursor-pointer hover:opacity-90 transition"
+                        onClick={() => setInspectingListing(listing)}
+                      />
+                      <div className="text-xs space-y-0.5">
+                        <span className="text-[10px] text-[#828892] font-medium block">Quality Inspection Photo:</span>
+                        <span className="font-bold text-[#1D5E34] bg-[#EDF6F0] px-2 py-0.5 rounded-md border border-[#BCE1C8] text-[11px]">
+                          {listing.quality_grade || 'Grade B (Standard)'}
+                        </span>
+                      </div>
                     </div>
+
+                    <button
+                      onClick={() => setInspectingListing(listing)}
+                      className="px-3 py-1.5 rounded-xl bg-[#2D5A43] hover:bg-[#1E4330] text-white text-[11px] font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+                    >
+                      <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
+                      <span>Inspect AI Assay</span>
+                    </button>
                   </div>
                 )}
 
@@ -516,6 +601,14 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
         <DeliveryReceiptModal
           receipt={selectedReceipt}
           onClose={() => setSelectedReceipt(null)}
+        />
+      )}
+
+      {/* AI Vision Assay Inspection Modal */}
+      {inspectingListing && (
+        <ComputerVisionModal
+          listing={inspectingListing}
+          onClose={() => setInspectingListing(null)}
         />
       )}
     </div>

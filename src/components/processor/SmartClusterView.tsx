@@ -16,8 +16,13 @@ import {
   Clock,
   ArrowRight,
   Check,
+  Map,
+  List,
+  Columns2,
+  Maximize2,
 } from 'lucide-react';
 import { WasteCluster, ClusterPoint } from '../../lib/clusteringOptimizer';
+import { ClusterMapView } from './ClusterMapView';
 
 interface SmartClusterViewProps {
   clusters: WasteCluster[];
@@ -39,6 +44,8 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
   );
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleSuccess, setScheduleSuccess] = useState('');
+  const [viewMode, setViewMode] = useState<'map' | 'list' | 'split'>('map');
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
 
   if (clusters.length === 0) {
     return (
@@ -219,19 +226,94 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
                 </h3>
               </div>
 
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                {/* View Mode Switcher */}
+                <div className="flex items-center p-1 bg-[#FAF8F5] rounded-xl border border-[#E7E1D7]">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('map')}
+                    className={`px-3 py-1 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      viewMode === 'map'
+                        ? 'bg-[#2D5A43] text-white shadow-2xs'
+                        : 'text-[#828892] hover:text-[#1C1E21]'
+                    }`}
+                  >
+                    <Map className="w-3.5 h-3.5" />
+                    <span>GIS Map</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('split')}
+                    className={`px-3 py-1 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      viewMode === 'split'
+                        ? 'bg-[#2D5A43] text-white shadow-2xs'
+                        : 'text-[#828892] hover:text-[#1C1E21]'
+                    }`}
+                  >
+                    <Columns2 className="w-3.5 h-3.5" />
+                    <span>Split View</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    className={`px-3 py-1 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      viewMode === 'list'
+                        ? 'bg-[#2D5A43] text-white shadow-2xs'
+                        : 'text-[#828892] hover:text-[#1C1E21]'
+                    }`}
+                  >
+                    <List className="w-3.5 h-3.5" />
+                    <span>Waypoints</span>
+                  </button>
+                </div>
+
                 <span className="bg-[#FAF8F5] text-[#2D5A43] border border-[#E7E1D7] px-3.5 py-1.5 rounded-xl font-bold font-mono">
                   {currentActiveCluster.estimatedTotalRouteDistanceKm} km Round Trip
                 </span>
               </div>
             </div>
 
-            {/* Smart Route Multi-Stop Sequence */}
-            <div className="space-y-3">
-              <span className="text-xs font-bold text-[#1C1E21] flex items-center gap-1.5">
-                <Navigation className="w-4 h-4 text-[#2D5A43]" />
-                <span>Door-to-Door Waypoints ({currentActiveCluster.optimizedRouteSequence.length} Stops)</span>
-              </span>
+            {/* Interactive GIS Cluster & Smart Route Map */}
+            {(viewMode === 'map' || viewMode === 'split') && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#1C1E21] flex items-center gap-1.5">
+                    <Map className="w-4 h-4 text-[#2D5A43]" />
+                    <span>Dynamic GIS Cluster & Optimized Loop Map</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsMapExpanded(true)}
+                    className="text-[11px] text-[#2D5A43] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                    <span>Expand Fullscreen</span>
+                  </button>
+                </div>
+
+                <ClusterMapView
+                  clusters={clusters}
+                  selectedCluster={currentActiveCluster}
+                  facilityLocation={facilityLocation}
+                  onSelectCluster={(c) => {
+                    setSelectedCluster(c);
+                    setScheduleDate(c.recommendedDate);
+                  }}
+                  heightClass={viewMode === 'split' ? 'h-[320px]' : 'h-[440px] sm:h-[480px]'}
+                  onToggleExpand={() => setIsMapExpanded(true)}
+                />
+              </div>
+            )}
+
+            {/* Smart Route Multi-Stop Sequence (Visible in List or Split mode) */}
+            {(viewMode === 'list' || viewMode === 'split') && (
+              <div className="space-y-3 pt-2">
+                <span className="text-xs font-bold text-[#1C1E21] flex items-center gap-1.5">
+                  <Navigation className="w-4 h-4 text-[#2D5A43]" />
+                  <span>Door-to-Door Waypoints ({currentActiveCluster.optimizedRouteSequence.length} Stops)</span>
+                </span>
 
               <div className="space-y-2.5 relative pl-6 border-l-2 border-[#2D5A43]/40 ml-3 py-1">
                 {/* Starting Point (Plant) */}
@@ -293,6 +375,7 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
                 </div>
               </div>
             </div>
+          )}
 
             {/* Schedule & Dispatch Action */}
             <div className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-2xl p-5 space-y-3">
@@ -334,6 +417,23 @@ export const SmartClusterView: React.FC<SmartClusterViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Fullscreen Expanded GIS Map Modal */}
+      {isMapExpanded && currentActiveCluster && (
+        <div className="fixed inset-0 z-70 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+          <ClusterMapView
+            clusters={clusters}
+            selectedCluster={currentActiveCluster}
+            facilityLocation={facilityLocation}
+            onSelectCluster={(c) => {
+              setSelectedCluster(c);
+              setScheduleDate(c.recommendedDate);
+            }}
+            isExpanded={true}
+            onToggleExpand={() => setIsMapExpanded(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
