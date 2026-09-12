@@ -247,6 +247,9 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
                 <span className="text-lg font-extrabold text-white">
                   {carbon.carbonCredits} <span className="text-xs font-normal text-emerald-400">Credits</span>
                 </span>
+                <span className="text-[10px] font-bold text-amber-400 block mt-0.5">
+                  ~₹{carbon.estimatedMarketValueINR.toLocaleString('en-IN')} Value
+                </span>
               </div>
             </div>
           </div>
@@ -304,7 +307,7 @@ export const AddWasteModal: React.FC<AddWasteModalProps> = ({ isOpen, onClose })
 
                     <div className="text-right shrink-0">
                       <span className="text-sm font-extrabold text-amber-400">
-                        ${proc.price_per_ton || 45}
+                        ₹{proc.price_per_ton ? proc.price_per_ton.toLocaleString('en-IN') : '2,500'}
                       </span>
                       <span className="text-[10px] text-slate-400 block">/ ton offer</span>
                     </div>

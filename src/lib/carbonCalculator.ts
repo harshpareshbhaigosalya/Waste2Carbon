@@ -15,11 +15,13 @@ export function calculateCarbonMetrics(
   const safeTons = Math.max(0, tons);
 
   // Carbon factor per ton
-  // Dry organic (crop residue / wood) -> Biochar pyrolysis fixes carbon permanently
+  // Dry organic (crop residue / wheat straw / wood) -> Biochar pyrolysis fixes carbon permanently
   // Wet organic (food waste / manure) -> Anaerobic digestion stops landfill methane
   const factor = category === 'dry_organic' ? 1.32 : 1.58;
   const totalCO2e = Number((safeTons * factor).toFixed(2));
-  const estimatedMarketValueUSD = Number((totalCO2e * 40).toFixed(0));
+  
+  // Indian Carbon Market Rate (~₹2,500 to ₹3,500 per verified tCO2e credit)
+  const estimatedMarketValueINR = Number((totalCO2e * 2500).toFixed(0));
 
   const pathway = category === 'dry_organic' ? 'Biochar Pyrolysis' : 'Biogas Digester';
 
@@ -27,7 +29,8 @@ export function calculateCarbonMetrics(
     tons: Number(safeTons.toFixed(2)),
     totalCO2e,
     carbonCredits: totalCO2e,
-    estimatedMarketValueUSD,
+    estimatedMarketValueINR,
+    estimatedMarketValueUSD: estimatedMarketValueINR, // stored in table column
     pathway,
   };
 }
@@ -38,7 +41,7 @@ export function calculateDistanceKm(
   lat2: number,
   lon2: number
 ): number {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return 5.0; // fallback friendly distance
+  if (!lat1 || !lon1 || !lat2 || !lon2) return 5.0;
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;

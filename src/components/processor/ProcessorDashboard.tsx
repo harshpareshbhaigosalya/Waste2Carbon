@@ -84,7 +84,9 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({ onOpenCe
             <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-medium">
               Your Buying Offer
             </span>
-            <span className="text-2xl font-black text-amber-400">${currentUser?.price_per_ton || 45}</span>
+            <span className="text-2xl font-black text-amber-400">
+              ₹{currentUser?.price_per_ton ? currentUser.price_per_ton.toLocaleString('en-IN') : '2,500'}
+            </span>
             <span className="text-xs text-slate-400"> / ton</span>
           </div>
         </div>

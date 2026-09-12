@@ -24,7 +24,7 @@ export const OnboardingScreen: React.FC = () => {
 
   // Processor settings
   const [facilityType, setFacilityType] = useState<'biochar' | 'biogas'>('biochar');
-  const [pricePerTon, setPricePerTon] = useState<number>(45);
+  const [pricePerTon, setPricePerTon] = useState<number>(2500);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -213,17 +213,18 @@ export const OnboardingScreen: React.FC = () => {
 
                   <div>
                     <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                      Offered Buying Price ($ per ton)
+                      Offered Buying Price (₹ per ton)
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                      <span className="absolute left-3.5 top-2.5 text-sm font-bold text-amber-400">₹</span>
                       <input
                         type="number"
-                        min="10"
-                        max="200"
+                        min="200"
+                        max="20000"
+                        step="50"
                         value={pricePerTon}
-                        onChange={(e) => setPricePerTon(parseFloat(e.target.value) || 40)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                        onChange={(e) => setPricePerTon(parseFloat(e.target.value) || 2500)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
                       />
                     </div>
                   </div>
