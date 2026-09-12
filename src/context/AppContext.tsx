@@ -80,10 +80,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Storage key for persistent quality photos and assay data
   const STORAGE_PHOTOS_KEY = 'w2c_listing_quality_photos';
 
+  const isDummyPhotoUrl = (url?: string): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    return (
+      url.includes('images.unsplash.com') ||
+      url.includes('unsplash') ||
+      url.includes('via.placeholder') ||
+      url.includes('picsum.photos')
+    );
+  };
+
   const getStoredListingPhotos = (): Record<string, { photo_url?: string; quality_grade?: string; quality_notes?: string }> => {
     try {
       const raw = localStorage.getItem(STORAGE_PHOTOS_KEY);
-      return raw ? JSON.parse(raw) : {};
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      const sanitized: Record<string, { photo_url?: string; quality_grade?: string; quality_notes?: string }> = {};
+      let needsResave = false;
+
+      for (const [key, val] of Object.entries(parsed as Record<string, any>)) {
+        if (!val) continue;
+        let pUrl = val.photo_url;
+        if (isDummyPhotoUrl(pUrl)) {
+          pUrl = undefined;
+          needsResave = true;
+        }
+        sanitized[key] = {
+          ...val,
+          photo_url: pUrl,
+        };
+      }
+
+      if (needsResave) {
+        localStorage.setItem(STORAGE_PHOTOS_KEY, JSON.stringify(sanitized));
+      }
+      return sanitized;
     } catch (e) {
       console.warn('Error reading stored listing photos:', e);
       return {};
@@ -96,29 +127,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ) => {
     try {
       const current = getStoredListingPhotos();
+      const cleanPhoto = isDummyPhotoUrl(quality.photo_url) ? undefined : quality.photo_url;
       current[listingId] = {
         ...current[listingId],
         ...quality,
+        photo_url: cleanPhoto,
       };
       localStorage.setItem(STORAGE_PHOTOS_KEY, JSON.stringify(current));
     } catch (e) {
       console.warn('Error saving listing photo:', e);
     }
-  };
-
-  // High-fidelity fallback images for agricultural biomass batches
-  const getDefaultBiomassPhoto = (category: string, subcategory?: string): string => {
-    const sub = (subcategory || '').toLowerCase();
-    if (sub.includes('straw') || sub.includes('paddy') || sub.includes('rice') || sub.includes('wheat') || sub.includes('stubble')) {
-      return 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1000&q=80';
-    }
-    if (sub.includes('bale') || sub.includes('husk') || sub.includes('dry') || category === 'dry_organic') {
-      return 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=1000&q=80';
-    }
-    if (sub.includes('bagasse') || sub.includes('cane') || sub.includes('stalk') || sub.includes('corn')) {
-      return 'https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?auto=format&fit=crop&w=1000&q=80';
-    }
-    return 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1000&q=80';
   };
 
   // 1. Fetch all data directly from Supabase tables
@@ -146,14 +164,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (listingsData) {
         enrichedListings = listingsData.map((listing: any) => {
           const cached = localPhotos[listing.id];
-          const photo_url = listing.photo_url || cached?.photo_url || undefined;
+          const rawPhoto = listing.photo_url || cached?.photo_url || undefined;
+          const photo_url = isDummyPhotoUrl(rawPhoto) ? undefined : rawPhoto;
           const quality_grade =
             listing.quality_grade ||
             cached?.quality_grade ||
             (listing.waste_category === 'dry_organic' ? 'Grade B (Standard)' : 'Grade C (Mixed / High Moisture)');
           const quality_notes = listing.quality_notes || cached?.quality_notes;
 
-          // Auto-persist in localPhotos so cache stays synchronized
+          // Auto-persist in localPhotos so cache stays synchronized only if valid real photo
           if (photo_url && !cached?.photo_url) {
             saveListingPhoto(listing.id, { photo_url, quality_grade, quality_notes });
           }
@@ -177,11 +196,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const parsed = requestsData.map((r: any) => {
           const cached = localPhotos[r.listing_id];
           const matchingListing = enrichedListings.find((l) => l.id === r.listing_id);
-          const listing_photo_url =
+          const rawPhoto =
             r.listing_photo_url ||
             cached?.photo_url ||
             matchingListing?.photo_url ||
             undefined;
+          const listing_photo_url = isDummyPhotoUrl(rawPhoto) ? undefined : rawPhoto;
           const quality_grade =
             r.quality_grade ||
             cached?.quality_grade ||
@@ -663,7 +683,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    const effectivePhoto = data.photo_url || undefined;
+    const effectivePhoto = isDummyPhotoUrl(data.photo_url) ? undefined : (data.photo_url || undefined);
     const effectiveGrade =
       data.quality_grade ||
       (data.waste_category === 'dry_organic'
@@ -946,10 +966,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       created_at: new Date().toISOString(),
     };
 
-    const effectivePhoto =
+    const rawPhoto =
       listing.photo_url ||
       getStoredListingPhotos()[listing.id]?.photo_url ||
       undefined;
+    const effectivePhoto = isDummyPhotoUrl(rawPhoto) ? undefined : rawPhoto;
     const effectiveGrade =
       listing.quality_grade ||
       getStoredListingPhotos()[listing.id]?.quality_grade ||
