@@ -118,6 +118,20 @@ Execute the SQL script in `supabase_schema.sql` inside your **Supabase SQL Edito
 ```
 
 ---
+## 📸 Project Glimpse
+
+<img width="851" height="722" alt="image" src="https://github.com/user-attachments/assets/550b6d1b-22de-46ea-bb28-9d92c699db5f" />
+<img width="1026" height="1364" alt="image" src="https://github.com/user-attachments/assets/67e0ec5b-b526-4769-aad3-8f230fa2f848" />
+<img width="1897" height="1071" alt="image" src="https://github.com/user-attachments/assets/fc2ac368-a6b6-4763-bd81-be761366aaaa" />
+<img width="820" height="703" alt="image" src="https://github.com/user-attachments/assets/b9dd8d0b-064c-42b2-9e48-dc6a8f4a4c99" />
+<img width="916" height="1077" alt="image" src="https://github.com/user-attachments/assets/9fab4978-f884-42b4-bba9-5f12364d6937" />
+<img width="1782" height="1509" alt="image" src="https://github.com/user-attachments/assets/4c8ac939-3535-4e61-b783-3c34970e68ad" />
+<img width="1684" height="1830" alt="image" src="https://github.com/user-attachments/assets/9ccf211c-e196-443b-a6f3-e94826d3ffeb" />
+<img width="1639" height="1341" alt="image" src="https://github.com/user-attachments/assets/04898d6c-4788-4ac2-926b-5b80e096f590" />
+<img width="1222" height="526" alt="image" src="https://github.com/user-attachments/assets/73504388-7afc-4d4e-99ce-fc4e95bfa704" />
+
+---
+
 
 ## 📄 License
 MIT License. Built for circular climate impact.
