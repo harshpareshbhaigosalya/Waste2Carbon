@@ -270,62 +270,64 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap rounded-2xl bg-[#F4EDE2]/80 p-1 border border-[#E7E1D7] max-w-3xl">
-        <button
-          onClick={() => setActiveTab('verifications')}
-          className={`flex-1 min-w-[120px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === 'verifications'
-              ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
-              : 'text-[#828892] hover:text-[#1C1E21]'
-          }`}
-        >
-          <ShieldAlert className="w-3.5 h-3.5 text-[#9A6A15]" />
-          <span>Verifications ({pendingProcessors.length})</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('vision')}
-          className={`flex-1 min-w-[150px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === 'vision'
-              ? 'bg-[#2D5A43] text-white shadow-xs'
-              : 'text-[#828892] hover:text-[#1C1E21]'
-          }`}
-        >
-          <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
-          <span>AI Vision QC ({listings.filter((l) => l.photo_url).length})</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('directory')}
-          className={`flex-1 min-w-[110px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === 'directory'
-              ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
-              : 'text-[#828892] hover:text-[#1C1E21]'
-          }`}
-        >
-          <Users className="w-3.5 h-3.5 text-[#2D5A43]" />
-          <span>Directory ({allUsers.length})</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('activity')}
-          className={`flex-1 min-w-[120px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === 'activity'
-              ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
-              : 'text-[#828892] hover:text-[#1C1E21]'
-          }`}
-        >
-          <Layers className="w-3.5 h-3.5 text-[#9A6A15]" />
-          <span>MRV Ledger ({ledger.length})</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('monetization')}
-          className={`flex-1 min-w-[130px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === 'monetization'
-              ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
-              : 'text-[#828892] hover:text-[#1C1E21]'
-          }`}
-        >
-          <Wallet className="w-3.5 h-3.5 text-[#9A6A15]" />
-          <span>Monetization</span>
-        </button>
+      <div className="overflow-x-auto pb-1">
+        <div className="flex rounded-2xl bg-[#F4EDE2]/80 p-1 border border-[#E7E1D7] min-w-[620px] sm:min-w-0 max-w-4xl">
+          <button
+            onClick={() => setActiveTab('verifications')}
+            className={`flex-1 min-w-[120px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'verifications'
+                ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
+                : 'text-[#828892] hover:text-[#1C1E21]'
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-[#9A6A15]" />
+            <span>Verifications ({pendingProcessors.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('vision')}
+            className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'vision'
+                ? 'bg-[#2D5A43] text-white shadow-xs'
+                : 'text-[#828892] hover:text-[#1C1E21]'
+            }`}
+          >
+            <Cpu className="w-3.5 h-3.5 text-[#E5C378]" />
+            <span>AI Vision QC ({listings.filter((l) => l.photo_url).length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('directory')}
+            className={`flex-1 min-w-[110px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'directory'
+                ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
+                : 'text-[#828892] hover:text-[#1C1E21]'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5 text-[#2D5A43]" />
+            <span>Directory ({allUsers.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('activity')}
+            className={`flex-1 min-w-[120px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'activity'
+                ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
+                : 'text-[#828892] hover:text-[#1C1E21]'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-[#9A6A15]" />
+            <span>MRV Ledger ({ledger.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('monetization')}
+            className={`flex-1 min-w-[130px] py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'monetization'
+                ? 'bg-[#FFFFFF] text-[#1C1E21] shadow-xs'
+                : 'text-[#828892] hover:text-[#1C1E21]'
+            }`}
+          >
+            <DollarSign className="w-3.5 h-3.5 text-[#2D5A43]" />
+            <span>Monetization & Fees</span>
+          </button>
+        </div>
       </div>
 
       {/* Tab 1: Verification Queue */}

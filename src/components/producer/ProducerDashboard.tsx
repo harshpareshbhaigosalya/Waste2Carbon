@@ -108,37 +108,37 @@ export const ProducerDashboard: React.FC<ProducerDashboardProps> = ({
           </p>
         </div>
 
-        <div className="relative z-10 flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0 w-full sm:w-auto">
           {onOpenVoiceAssistant && (
             <button
               onClick={onOpenVoiceAssistant}
-              className="flex items-center gap-2 bg-[#F8F5EE] hover:bg-[#F2ECE0] text-[#1E4330] font-bold px-4 py-3 rounded-2xl shadow-sm transition transform hover:-translate-y-0.5 cursor-pointer border border-[#D6CEC2]"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#F8F5EE] hover:bg-[#F2ECE0] text-[#1E4330] font-bold px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl shadow-sm transition transform hover:-translate-y-0.5 cursor-pointer border border-[#D6CEC2] text-xs sm:text-sm"
             >
               <Sparkles className="w-4 h-4 text-[#9A6A15]" />
-              <span>AI Voice Assistant</span>
+              <span>Voice AI</span>
             </button>
           )}
 
           {onOpenProfile && (
             <button
               onClick={onOpenProfile}
-              className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs font-bold transition cursor-pointer"
+              className="flex-1 sm:flex-none px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs font-bold transition cursor-pointer text-center"
             >
-              Producer Profile
+              Profile
             </button>
           )}
 
           <button
             onClick={handleRefresh}
             title="Refresh database"
-            className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition cursor-pointer"
+            className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition cursor-pointer shrink-0"
           >
-            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-[#E5C378]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshing ? 'animate-spin text-[#E5C378]' : ''}`} />
           </button>
 
           <button
             onClick={() => setIsAddOpen(true)}
-            className="flex items-center justify-center gap-2 bg-white text-[#1E4330] hover:bg-[#F8F5EE] font-bold px-5 py-3 rounded-2xl shadow-sm transition cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-[#1E4330] hover:bg-[#F8F5EE] font-bold px-4 sm:px-5 py-3 rounded-2xl shadow-sm transition cursor-pointer text-xs sm:text-sm"
           >
             <Plus className="w-4 h-4 text-[#2D5A43]" />
             <span>+ List Waste Batch</span>

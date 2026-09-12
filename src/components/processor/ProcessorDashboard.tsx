@@ -318,38 +318,38 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           </p>
         </div>
 
-        <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
+        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-3 shrink-0 w-full sm:w-auto">
           {onOpenVoiceAssistant && (
             <button
               onClick={onOpenVoiceAssistant}
-              className="flex items-center gap-2 bg-[#F8F5EE] hover:bg-[#F2ECE0] text-[#1E4330] font-bold px-4 py-3 rounded-2xl shadow-sm transition cursor-pointer border border-[#D6CEC2]"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#F8F5EE] hover:bg-[#F2ECE0] text-[#1E4330] font-bold px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl shadow-sm transition cursor-pointer border border-[#D6CEC2] text-xs sm:text-sm"
             >
               <Sparkles className="w-4 h-4 text-[#9A6A15]" />
-              <span>AI Voice Assistant</span>
+              <span>Voice AI</span>
             </button>
           )}
 
           {onOpenProfile && (
             <button
               onClick={onOpenProfile}
-              className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              className="flex-1 sm:flex-none px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
             >
               <User className="w-4 h-4 text-[#E5C378]" />
-              <span>Facility Profile</span>
+              <span>Profile</span>
             </button>
           )}
 
           <button
             onClick={handleRefresh}
             title="Refresh database"
-            className="p-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition cursor-pointer"
+            className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition cursor-pointer shrink-0"
           >
-            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-[#E5C378]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshing ? 'animate-spin text-[#E5C378]' : ''}`} />
           </button>
 
           {/* Quick Price Editor in Banner */}
-          <div className="bg-white text-[#1C1E21] rounded-2xl px-5 py-3 text-right shadow-sm shrink-0 border border-[#E7E1D7]">
-            <div className="flex items-center justify-end gap-1.5 mb-0.5">
+          <div className="w-full sm:w-auto bg-white text-[#1C1E21] rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-left sm:text-right shadow-sm shrink-0 border border-[#E7E1D7] flex items-center justify-between sm:block">
+            <div className="flex items-center justify-start sm:justify-end gap-1.5 mb-0.5">
               <span className="text-[10px] text-[#828892] uppercase tracking-widest font-bold">
                 Your Buying Offer
               </span>
@@ -368,13 +368,11 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
 
             {isEditingPrice ? (
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-sm text-[#2D5A43] font-bold">₹</span>
                 <input
                   type="number"
-                  step="50"
                   value={newPrice}
                   onChange={(e) => setNewPrice(Number(e.target.value))}
-                  className="w-24 bg-[#FAF8F5] border border-[#2D5A43] rounded-lg px-2 py-1 text-sm font-bold text-[#1C1E21] text-right focus:outline-none"
+                  className="w-24 px-2 py-1 text-xs border border-[#E7E1D7] rounded-lg font-bold text-[#2D5A43]"
                   autoFocus
                 />
                 <button
@@ -393,7 +391,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
               </div>
             ) : (
               <div>
-                <span className="text-2xl font-black text-[#2D5A43] tabular-nums">
+                <span className="text-xl sm:text-2xl font-black text-[#2D5A43] tabular-nums">
                   ₹{currentUser?.price_per_ton ? currentUser.price_per_ton.toLocaleString('en-IN') : '2,500'}
                 </span>
                 <span className="text-xs text-[#828892]"> / ton</span>
@@ -405,8 +403,8 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
       </div>
 
       {/* Operational Workflow States Pipeline */}
-      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-4 shadow-2xs">
-        <div className="flex items-center justify-between gap-2 mb-2">
+      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-4 shadow-2xs overflow-x-auto">
+        <div className="flex items-center justify-between gap-2 mb-2 min-w-[320px]">
           <span className="text-[10px] uppercase font-bold tracking-wider text-[#828892]">
             Circular Lifecycle Tracking Pipeline
           </span>
@@ -414,7 +412,7 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
             IPCC MRV Audit
           </span>
         </div>
-        <div className="grid grid-cols-7 gap-1 text-center text-[10px] sm:text-xs">
+        <div className="grid grid-cols-7 gap-1 text-center text-[10px] sm:text-xs min-w-[500px]">
           {[
             { label: 'Available', status: 'done' },
             { label: 'Cluster Forming', status: 'done' },
@@ -472,10 +470,10 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
       </div>
 
       {/* Main Tabs: Smart Bulk Clusters vs Individual Queue vs Open Marketplace */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
         <button
           onClick={() => setActiveTab('clusters')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+          className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
             activeTab === 'clusters'
               ? 'bg-[#2D5A43] text-white shadow-sm'
               : 'bg-white text-[#575B62] border border-[#E7E1D7] hover:bg-[#F8F5EE]'
@@ -484,32 +482,32 @@ export const ProcessorDashboard: React.FC<ProcessorDashboardProps> = ({
           <Layers className="w-4 h-4 text-[#E5C378]" />
           <span>Smart AI Clusters & Routes ({computedClusters.length})</span>
           <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#E5C378] text-[#1E4330] font-bold uppercase">
-            Bulk Logistics
+            Bulk
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('requests')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+          className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
             activeTab === 'requests'
               ? 'bg-[#2D5A43] text-white shadow-sm'
               : 'bg-white text-[#575B62] border border-[#E7E1D7] hover:bg-[#F8F5EE]'
           }`}
         >
           <Truck className="w-4 h-4 text-[#E5C378]" />
-          <span>Direct Requests & Negotiations ({myRequests.length})</span>
+          <span>Direct Requests ({myRequests.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('marketplace')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
+          className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs font-bold transition cursor-pointer shadow-2xs ${
             activeTab === 'marketplace'
               ? 'bg-[#2D5A43] text-white shadow-sm'
               : 'bg-white text-[#575B62] border border-[#E7E1D7] hover:bg-[#F8F5EE]'
           }`}
         >
           <Sparkles className="w-4 h-4 text-[#E5C378]" />
-          <span>Open Marketplace Batches ({openMarketplaceListings.length})</span>
+          <span>Marketplace Batches ({openMarketplaceListings.length})</span>
         </button>
       </div>
 

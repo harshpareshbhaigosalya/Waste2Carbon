@@ -30,6 +30,8 @@ import {
   Sprout,
   Check,
   Navigation as NavigationIcon,
+  Menu,
+  X,
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -40,6 +42,7 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => {
   const [activeTab, setActiveTab] = useState<'farmers' | 'buyers' | 'carbon'>('farmers');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const stats = [
     { label: 'Biomass Aggregated', value: '12,450+', unit: 'Metric Tons', icon: Sprout, color: '#2D5A43' },
@@ -127,24 +130,106 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             </a>
           </nav>
 
-          {/* Action CTAs */}
-          <div className="flex items-center gap-2.5">
+          {/* Action CTAs & Mobile Hamburger Toggle */}
+          <div className="flex items-center gap-2">
             <button
               onClick={onSignIn}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-[#1C1E21] hover:bg-[#F2ECE0] border border-[#E7E1D7] transition cursor-pointer"
+              className="hidden sm:inline-flex px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold text-[#1C1E21] hover:bg-[#F2ECE0] border border-[#E7E1D7] transition cursor-pointer"
             >
               Sign In
             </button>
             <button
               onClick={onGetStarted}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#2D5A43] hover:bg-[#1E4330] text-white shadow-sm hover:shadow-md transition flex items-center gap-1.5 cursor-pointer transform hover:scale-[1.02]"
+              className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold bg-[#2D5A43] hover:bg-[#1E4330] text-white shadow-sm hover:shadow-md transition flex items-center gap-1.5 cursor-pointer transform hover:scale-[1.02]"
             >
-              <span>Launch Platform</span>
+              <span className="hidden xs:inline sm:inline">Launch App</span>
+              <span className="xs:hidden sm:hidden">Launch</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#E5C378]" />
+            </button>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-xl text-[#575B62] hover:text-[#1C1E21] hover:bg-[#F2ECE0] border border-[#E7E1D7] transition cursor-pointer"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-[#FAF8F5] border-b border-[#E7E1D7] px-4 py-5 shadow-lg animate-fadeIn space-y-4">
+            <nav className="flex flex-col space-y-2 text-sm font-bold text-[#575B62]">
+              <a
+                href="#problem"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-[#F2ECE0] hover:text-[#2D5A43] transition"
+              >
+                The Crisis & Solution
+              </a>
+              <a
+                href="#how-it-works"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-[#F2ECE0] hover:text-[#2D5A43] transition"
+              >
+                How It Works
+              </a>
+              <a
+                href="#technology"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-[#F2ECE0] hover:text-[#2D5A43] transition"
+              >
+                AI Vision & GIS Maps
+              </a>
+              <a
+                href="#monetization"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-[#F2ECE0] hover:text-[#2D5A43] transition"
+              >
+                Monetization & Business Model
+              </a>
+              <a
+                href="#team"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-[#F2ECE0] hover:text-[#2D5A43] transition"
+              >
+                Team CockroachJantaParty
+              </a>
+              <a
+                href="#faq"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-[#F2ECE0] hover:text-[#2D5A43] transition"
+              >
+                FAQ
+              </a>
+            </nav>
+
+            <div className="pt-3 border-t border-[#E7E1D7] flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onSignIn();
+                }}
+                className="w-full py-2.5 rounded-xl text-xs font-bold text-[#1C1E21] bg-white hover:bg-[#F2ECE0] border border-[#E7E1D7] text-center transition"
+              >
+                Sign In to Account
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onGetStarted();
+                }}
+                className="w-full py-3 rounded-xl text-xs font-bold bg-[#2D5A43] hover:bg-[#1E4330] text-white text-center shadow-sm transition flex items-center justify-center gap-2"
+              >
+                <span>Launch Waste2Carbon Platform</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#E5C378]" />
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* 2. HERO SECTION */}
@@ -222,18 +307,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             <div className="bg-[#1C1E21] rounded-2xl overflow-hidden text-white p-4 sm:p-6 space-y-6">
               
               {/* Simulated OS Window Header */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
                   <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
                   <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
-                  <span className="text-xs text-[#828892] font-mono pl-2">
+                  <span className="text-[11px] sm:text-xs text-[#828892] font-mono pl-2 truncate max-w-[200px] sm:max-w-none">
                     waste2carbon.platform/terminal/live-mrv
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] font-mono text-[#E5C378]">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>NETWORK OPERATIONAL · 24 GREEN CBG REFINERIES CONNECTED</span>
+                <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-mono text-[#E5C378]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <span className="truncate">NETWORK LIVE · 24 CBG REFINERIES CONNECTED</span>
                 </div>
               </div>
 
