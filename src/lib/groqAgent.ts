@@ -152,15 +152,18 @@ Do NOT wrap in markdown backticks or output any extra text.`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
+  // Use accessible active models on this key: openai/gpt-oss-120b with fallback to openai/gpt-oss-20b
+  const primaryModel = 'openai/gpt-oss-120b';
+
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: primaryModel,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userInput },
@@ -170,6 +173,27 @@ Do NOT wrap in markdown backticks or output any extra text.`;
       }),
       signal: controller.signal,
     });
+
+    // If primary model has any issue, try secondary gpt-oss-20b fallback model
+    if (!response.ok && response.status === 404) {
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-oss-20b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userInput },
+          ],
+          temperature: 0.1,
+          response_format: { type: 'json_object' },
+        }),
+        signal: controller.signal,
+      });
+    }
 
     clearTimeout(timeoutId);
 
