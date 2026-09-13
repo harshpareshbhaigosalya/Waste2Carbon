@@ -244,7 +244,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {/* Hackathon Honor Pill */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-[#D6CEC2] shadow-2xs text-xs font-semibold text-[#1C1E21]">
               <span className="flex h-2 w-2 rounded-full bg-[#25D366] animate-ping" />
-              <span className="font-bold text-[#2D5A43]">HackOut 2024 Solution</span>
+              <span className="font-bold text-[#2D5A43]">HackOut 2026 Solution</span>
               <span className="text-[#828892]">·</span>
               <span className="text-[#9A6A15] font-mono">Team CockroachJantaParty</span>
             </div>
@@ -767,7 +767,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               Team CockroachJantaParty
             </h2>
             <p className="text-xs sm:text-sm text-[#575B62] leading-relaxed">
-              Crafted with passion for HackOut 2024 to solve India's air quality crisis through software and economic incentives.
+              Crafted with passion for HackOut 2026 to solve India's air quality crisis through software and economic incentives.
             </p>
           </div>
 
@@ -786,7 +786,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 </div>
                 <div className="pt-2 border-t border-[#E7E1D7]">
                   <span className="text-[10px] font-bold text-[#2D5A43] bg-[#EDF6F0] px-2.5 py-0.5 rounded-full">
-                    HackOut 2024
+                    HackOut 2026
                   </span>
                 </div>
               </div>
@@ -885,7 +885,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               <Leaf className="w-3.5 h-3.5 text-[#E5C378]" />
             </div>
             <span className="font-serif font-black text-[#1C1E21]">Waste2Carbon</span>
-            <span>· Built for HackOut 2024 by Team CockroachJantaParty</span>
+            <span>· Built for HackOut 2026 by Team CockroachJantaParty</span>
           </div>
 
           <div className="flex items-center gap-6">
