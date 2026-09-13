@@ -296,9 +296,17 @@ When presenting Waste2Carbon to hackathon judges and investors, the platform ope
 ## 📁 Repository Structure
 
 ```
+
+├── forecasting-model/                  # Predictive model for advance waste-generation timing
+│   ├── data/                           # Training/historical data for forecasting
+│   └── models/                         # Saved/trained forecasting model artifacts
+├── image-processing/                   # AI-based waste image quality & contamination checks
+│   ├── data/                           # Training/reference image datasets
+│   └── models/                         # Saved/trained image classification model artifacts
 ├── public/
 │   └── leaf.svg                        # Brand asset
 ├── src/
+│   ├── assets/                         # Static app assets (icons, images)
 │   ├── components/
 │   │   ├── admin/
 │   │   │   └── AdminDashboard.tsx      # Regulatory compliance, charts & national MRV ledger
@@ -332,6 +340,7 @@ When presenting Waste2Carbon to hackathon judges and investors, the platform ope
 ├── supabase_schema.sql                 # Complete PostgreSQL schema & RLS policies
 ├── package.json
 └── vite.config.ts
+
 ```
 
 ---
